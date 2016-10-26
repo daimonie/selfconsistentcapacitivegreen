@@ -16,14 +16,17 @@ import time
 global_time_start = time.time()
 tolerance = 1e-3
 
-bias_res = 40
+bias_res = 150
 
 biaswindow = []
-for bias in np.linspace( -0.25, -0.07, 5 ):
+
+lowresborder = 0.10
+
+for bias in np.linspace( -0.25, -lowresborder , 5 ):
     biaswindow.append(bias)
-for bias in np.linspace( -0.07, 0.07, bias_res ):
+for bias in np.linspace( -lowresborder , lowresborder , bias_res ):
     biaswindow.append(bias)
-for bias in np.linspace( -0.07, 0.25, 5 ):
+for bias in np.linspace( -lowresborder , 0.25, 5 ):
     biaswindow.append(bias)
 bias_res = len(biaswindow)
 biaswindow = np.array(biaswindow)
@@ -180,6 +183,14 @@ for bias in biaswindow:
     P = P0 
     ### define function to calculate the vector of single-particle number operator
     ###     expectation values from the Green's functions and a probability vector
+    
+    traps_lesser_one_0 = np.trapz([one_lesser(e, 0) for e in epsilon_window], epsilon_window)
+    traps_lesser_one_1 = np.trapz([one_lesser(e, 1) for e in epsilon_window], epsilon_window)
+    traps_lesser_two_0 =  np.trapz([two_lesser(e, 0) for e in epsilon_window], epsilon_window)
+    traps_lesser_two_1 =  np.trapz([two_lesser(e, 1) for e in epsilon_window], epsilon_window)
+    traps_lesser_three_0 =  np.trapz([three_lesser(e, 0) for e in epsilon_window], epsilon_window)
+    traps_lesser_three_1 =  np.trapz([three_lesser(e, 1) for e in epsilon_window], epsilon_window)
+    
     def lesser_number_vector ( P ): 
         number_vector = [0.0, 0.0]
         for k in superset:
@@ -189,19 +200,19 @@ for bias in biaswindow:
                     #print "Zero contains nothing"
                 if l == 1:
                     if ket_l[0] == 1.0:
-                        number_vector[0] += P[l] * np.trapz([one_lesser(e, 0) for e in epsilon_window], epsilon_window)
+                        number_vector[0] += P[l] * traps_lesser_one_0
                     if ket_l[1] == 1.0:
-                        number_vector[1] += P[l] * np.trapz([one_lesser(e, 1) for e in epsilon_window], epsilon_window)
+                        number_vector[1] += P[l] * traps_lesser_one_1
                 elif l == 2:
                     if ket_l[0] == 1.0:
-                        number_vector[0] += P[l] * np.trapz([two_lesser(e, 0) for e in epsilon_window], epsilon_window)
+                        number_vector[0] += P[l] * traps_lesser_two_0
                     if ket_l[1] == 1.0:
-                        number_vector[1] += P[l] * np.trapz([two_lesser(e, 1) for e in epsilon_window], epsilon_window)
+                        number_vector[1] += P[l] * traps_lesser_two_1
                 elif l == 3:
                     if ket_l[0] == 1.0:
-                        number_vector[0] += P[l] * np.trapz([three_lesser(e, 0) for e in epsilon_window], epsilon_window)
+                        number_vector[0] += P[l] * traps_lesser_three_0
                     if ket_l[1] == 1.0:
-                        number_vector[1] += P[l] * np.trapz([three_lesser(e, 1) for e in epsilon_window], epsilon_window)
+                        number_vector[1] += P[l] * traps_lesser_three_1
                     
         number_vector = np.array(number_vector)
         number_vector /= np.sum(number_vector)
@@ -361,7 +372,7 @@ make_same_scale = np.max(experimental) / np.max(calculated_current)
 calculated_current *= make_same_scale
 
 plt.plot(bias, experimental, 'm-', label='Experimental Average')  
-plt.plot(calculated_bias, calculated_current, 'rd', label='SCI spinless two-site model', markersize=12)  
+plt.plot(calculated_bias, calculated_current, 'rd', label='SCI spinless two-site model', markersize=8)  
  
 ax.set_title("Scaled $I(V)$ by $%.2f$, $\\tau=%.3f, \\gamma=%.3f, \\alpha=%.3f, \\epsilon_0=%.3f, U=%.3f$" % (make_same_scale, tau, gamma, alpha, levels, capacitive), fontsize=20)
 
@@ -392,6 +403,6 @@ plt.tick_params(which='major', length=20)
 plt.tick_params(which='minor', length=10)
 
 print "Plotting"
-plt.savefig('selfconsistent_fit_current.pdf')
+plt.savefig('selfconsistent_current.png')
 global_time_end = time.time ()
 print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)

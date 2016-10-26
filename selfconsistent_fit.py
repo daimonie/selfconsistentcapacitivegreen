@@ -8,12 +8,10 @@ import scipy.interpolate as si
 from scipy.optimize import minimize
 from scipy.constants import physical_constants as pc
 ### parameters
-tolerance = 1e-3
+tolerance = 1e-3 
 
-#bias_res = 50
-#biaswindow = np.linspace( -0.5, 0.5, bias_res )
-
-biaswindow = np.array([-0.50, -0.40, -0.30, -0.20, -0.10, 0.00, 0.10, 0.20, 0.30, 0.40, 0.50])
+#biaswindow = np.array([-0.50, -0.40, -0.30, -0.20, -0.10, 0.00, 0.10, 0.20, 0.30, 0.40, 0.50])
+biaswindow = np.linspace( -0.50, 0.50, 50 );
 bias_res = len(biaswindow)
 
 
@@ -110,6 +108,14 @@ for bias in biaswindow:
     P = P0 
     ### define function to calculate the vector of single-particle number operator
     ###     expectation values from the Green's functions and a probability vector
+    
+    traps_lesser_one_0 = np.trapz([one_lesser(e, 0) for e in epsilon_window], epsilon_window)
+    traps_lesser_one_1 = np.trapz([one_lesser(e, 1) for e in epsilon_window], epsilon_window)
+    traps_lesser_two_0 =  np.trapz([two_lesser(e, 0) for e in epsilon_window], epsilon_window)
+    traps_lesser_two_1 =  np.trapz([two_lesser(e, 1) for e in epsilon_window], epsilon_window)
+    traps_lesser_three_0 =  np.trapz([three_lesser(e, 0) for e in epsilon_window], epsilon_window)
+    traps_lesser_three_1 =  np.trapz([three_lesser(e, 1) for e in epsilon_window], epsilon_window)
+    
     def lesser_number_vector ( P ): 
         number_vector = [0.0, 0.0]
         for k in superset:
@@ -119,19 +125,19 @@ for bias in biaswindow:
                     #print "Zero contains nothing"
                 if l == 1:
                     if ket_l[0] == 1.0:
-                        number_vector[0] += P[l] * np.trapz([one_lesser(e, 0) for e in epsilon_window], epsilon_window)
+                        number_vector[0] += P[l] * traps_lesser_one_0
                     if ket_l[1] == 1.0:
-                        number_vector[1] += P[l] * np.trapz([one_lesser(e, 1) for e in epsilon_window], epsilon_window)
+                        number_vector[1] += P[l] * traps_lesser_one_1
                 elif l == 2:
                     if ket_l[0] == 1.0:
-                        number_vector[0] += P[l] * np.trapz([two_lesser(e, 0) for e in epsilon_window], epsilon_window)
+                        number_vector[0] += P[l] * traps_lesser_two_0
                     if ket_l[1] == 1.0:
-                        number_vector[1] += P[l] * np.trapz([two_lesser(e, 1) for e in epsilon_window], epsilon_window)
+                        number_vector[1] += P[l] * traps_lesser_two_1
                 elif l == 3:
                     if ket_l[0] == 1.0:
-                        number_vector[0] += P[l] * np.trapz([three_lesser(e, 0) for e in epsilon_window], epsilon_window)
+                        number_vector[0] += P[l] * traps_lesser_three_0
                     if ket_l[1] == 1.0:
-                        number_vector[1] += P[l] * np.trapz([three_lesser(e, 1) for e in epsilon_window], epsilon_window)
+                        number_vector[1] += P[l] * traps_lesser_three_1
                     
         number_vector = np.array(number_vector)
         number_vector /= np.sum(number_vector)
@@ -204,11 +210,13 @@ plt.tick_params(which='both', width=2)
 plt.tick_params(which='major', length=20)
 plt.tick_params(which='minor', length=10)
 
+plt.xlim([-.5, .5])
+plt.ylim([-0.05, 1.05])
 if len(biaswindow) < 10:
     plt.xticks([-.5, -.25, 0.00, .25, .50])
 else:
-    plt.xticks(biaswindow)
-plt.yticks([-0.10, 0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.10])
+    plt.xticks([-0.5, -0.4, -.3, -.2, -.1, 0, .1, .2, .3, .4, .5])
+plt.yticks([0.00, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.1])
 
 plt.xlabel(xlabel, fontsize=30)
 plt.ylabel(ylabel, fontsize=30)
@@ -216,5 +224,5 @@ plt.ylabel(ylabel, fontsize=30)
 #plt.title( "%s" % (title), fontsize=15)       
 plt.legend(loc='upper right') 
 
-plt.savefig('selfconsistent.pdf') 
+plt.savefig('selfconsistent_density.png') 
 

@@ -1,22 +1,3 @@
 #!/bin/bash
-
-for u in 0.25
-do
-    for e in -0.0001 
-    do
-        for t in 0.004 0.006 0.008 0.010
-        do 
-            for g in 0.004 0.006 0.008 0.010
-            do 
-                for a in 0.40 0.50 0.60
-                do
-                    for b in 1250.0 2250.0
-                    do
-                        python selfconsistent_fit_current.py -u $u -e $e -t $t -g $g -a $a -b $b
-                        mv selfconsistent_fit_current.pdf sccurrent/fit_u${u}_e${e}_t${t}_g${g}_a${a}_b${b}.pdf
-                    done
-                done
-            done
-        done
-    done
-done
+python selfconsistent_fit.py -u 0.300 -e -0.310 -t 0.010 -g 0.010 -a 0.400 -b 2250.0
+chromium selfconsistent_density.png

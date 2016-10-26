@@ -1,0 +1,13 @@
+Date: do 28 mrt 2013, Material: Au, Temp: 4.2 K
+AO1 - module gain: 1.0E+0, R_out: 0.0
+AO2 - module gain: 1.0E+2
+MUX1 - ADC gain: 4, logarithmic amplifier: D:\LabVIEW Data\Lithographic MCBJ\MED24_070412.TXT, R_in: 0.000
+MUX2 - ADC gain: 4, linear amplifier: 1.000000 x 1e10 V/A, R_in: 1.000
+Breaking trace: 15 0
+Axis position: -882.394648
+@
+0.00000000E+0	1.06354715E+0	1.06354715E+0
+2.50000000E-2	1.06354715E+0	1.06354715E+0
+5.00000000E-2	1.06354715E+0	1.06354715E+0
+7.50000000E-2	1.06354715E+0	1.06354715E+0
+1.00000000E-1	1.06354715E+0	1.06354715E+0
