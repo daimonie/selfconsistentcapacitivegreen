@@ -19,6 +19,8 @@ class igfwl(object):
             self.u           = param_u
             self.gamma_left  = param_gamma_left
             self.gamma_right = param_gamma_right
+             
+            self.gamma = (np.sum( self.gamma_left) + np.sum(self.gamma_right ))/2.             
             
             self.sigma_retarded = 1j * (self.gamma_left + self.gamma_right) / 2.0
             self.sigma_advanced = - self.sigma_retarded;
@@ -32,13 +34,25 @@ class igfwl(object):
             self.external_distribution = False
             self.external_distribution_array = self.distribution()
             self.external_distribution = True
+            
+            self.k_matrix = None
+            self.w_matrix = None
     def singleparticlebackground(self, background):
         """This gives us the single-particle Green's function with some background."""
         
-        mu_background = np.diag([self.epsilon[i][i] + np.dot( self.u[i], background) for i in range(0,self.dim)])
+        mu_background = np.diag([self.epsilon[i][i] for i in range(0,self.dim)])
+        
+        ket_background = self.ket( background )
+        #Formal, as equation 3.10
+        for i in range(mu_background.shape[0]):
+            for j in range(mu_background.shape[1]):
+                for p in range( self.dim ):
+                    if ket_background[p] == 1.0:
+                        mu_background[i,j] += self.u[i, p]
+        #Green's function with a single-particle background
         single_retarded = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_retarded)
         single_advanced = lambda energy: np.linalg.inv( np.eye( self.dim) * energy - mu_background - self.tau - self.sigma_advanced)
-        
+        print single_retarded, single_advanced
         return single_retarded, single_advanced
     def generate_superset(self, number):
         """ This function returns a list of the integers that are in the superset of k. The reason this is a seperate function is because I think this algorithm can be a lot smoother/faster."""
@@ -130,9 +144,6 @@ class igfwl(object):
         #print >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale
         transport /= scale
         return transport
-    def spectral_channel(self, k, epsilon):
-        """Returns the spectral function for the many body state k."""
-        raise Exception("Needs to be redone")
     def scaler(self):
         scale = 0.0
         chances = self.distribution()
@@ -141,3 +152,66 @@ class igfwl(object):
                 for ll in self.generate_superset(k):
                     scale += chances[k] * chances[l] * chances[ll]
         return scale
+    def spectral_channel(self, k, epsilon):
+        """Returns the spectral function for the many body state k."""
+        raise Exception("Needs to be redone") 
+    def calculate_number_matrix_k(self):
+        """Calculates the K matrix, required for self consistency"""
+        number_rows = self.epsilon.shape[0]
+        number_cols = self.distribution().shape[0]
+        
+        self.k_matrix =  np.zeros((number_rows, number_cols))
+        #Find the supersets of the ground state (i.e. all many-body eigenvectors)
+        #Returns an array of numbers of each state!
+        superset = self.generate_superset(0)
+        
+        #for each number operator
+        for i in range(number_rows): 
+            #for each number operator
+            for j in superset: 
+                #remember that the numbered many-body state j is binary encoded!
+                if (i+1) & j == (i+1):
+                    self.k_matrix[i, j] = 1.0 
+        pass
+    def calculate_number_matrix_w(self, bias):
+        """Calculates the W matrix, required for self consistency. Warning; assumes left/right coupled lead!!!"""
+        number_rows = self.epsilon.shape[0]
+        number_cols = self.distribution().shape[0]
+        
+        self.w_matrix =  np.zeros((number_rows, number_cols))
+        superset = self.generate_superset(0)
+        
+        fd = lambda epsilon: 1.0 / ( 1 + np.exp( np.longfloat(epsilon * self.beta )))
+        
+        left_green_integral = []
+        right_green_integral = []
+         
+        for i in superset:
+            retarded_lambda,  advanced_lambda = self.singleparticlebackground(i) 
+            left_w_lambda = []
+            right_w_lambda = []
+            
+            state = self.ket(i)
+            for j in range(self.dim):
+                if state[j] == 1.0:
+                    left_w_lambda.append(lambda epsilon: np.real( fd( epsilon + 0.5*bias ) * retarded_lambda(epsilon).item(j,j)* self.gamma* advanced_lambda(epsilon).item(j,j)))
+                    right_w_lambda.append(lambda epsilon: np.real( fd( epsilon - 0.5*bias ) * retarded_lambda(epsilon).item(j,j)* self.gamma* advanced_lambda(epsilon).item(j,j)))
+             
+            left_green_integral.append(left_w_lambda)
+            right_green_integral.append(right_w_lambda)
+        #edit this loop so that it creates the integrals required for W
+        #should be clear how to do this (for epsi -> correct linspace, etc)
+        
+        for i in superset:
+            for epsi in np.linspace(-0.5, 0.5, 101):
+                left_value = 0.0
+                for lambda_fun in left_green_integral[i]:
+                    left_value += lambda_fun( epsi )
+                right_value = 0.0
+                for lambda_fun in right_green_integral[i]:
+                    left_value += lambda_fun( epsi )
+                print "%d\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f" % (i, epsi, left_value, right_value, fd(epsi+0.5*bias), fd(epsi-0.5*bias))
+        pass
+    def selfconsistent_distribution(self):
+        pass
+        

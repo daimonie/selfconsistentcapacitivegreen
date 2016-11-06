@@ -62,7 +62,7 @@ parser.add_argument(
     default = default_tau
 )   
 parser.add_argument(
-    '-gt',
+    '-g',
     '--gamma',
     help='Molecule-lead coupling strength',
     action='store',
@@ -70,7 +70,7 @@ parser.add_argument(
     default = default_gamma
 )   
 parser.add_argument(
-    '-at',
+    '-a',
     '--alpha',
     help='Bias-level coupling',
     action='store',
