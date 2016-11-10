@@ -1,0 +1,4 @@
+#!/bin/bash
+clear
+python current.py -u .300 -e -0.010 -t 0.010 -g 0.010 -a 0.470 -b 2800.0
+echo "DONE"
