@@ -1,3 +1,0 @@
-#!/bin/bash
-python selfconsistent_fit.py -u 0.300 -e -0.310 -t 0.010 -g 0.010 -a 0.400 -b 2250.0
-chromium selfconsistent_density.png

@@ -104,46 +104,7 @@ alpha = args.alpha
 capacitive = args.capacitive
 levels = args.epsilon
 beta = args.beta 
-
-for bias in biaswindow:
-    hamiltonian = np.zeros((2,2))
-    hamiltonian[0][0] = levels + 0.5 * alpha * bias
-    hamiltonian[1][1] = levels - 0.5 * alpha * bias
-
-    tunnel = np.zeros((2,2))
-    tunnel[0][1] = -tau
-    tunnel[1][0] = -tau
-
-    interaction = np.zeros((2,2))
-    interaction[0][1] = capacitive
-    interaction[1][0] = capacitive
-
-
-    gamma_left = np.zeros((2,2))
-    gamma_left[0][0] = gamma
-
-    gamma_right = np.zeros((2,2))
-    gamma_right[1][1] = gamma
-
-    calculation = igfwl(
-        hamiltonian, 
-        tunnel,
-        interaction, 
-        gamma_left,
-        gamma_right, 
-        beta
-    )
-
-    superset = calculation.generate_superset(0)
-    ### Construct the K matrix  
-    calculation.calculate_number_matrix_k()
-    calculation.calculate_number_matrix_w( 0.35, np.linspace( -1.0, 1.0, 1000))
-    ### self-consistency loop
-    P = calculation.selfconsistent_distribution(tolerance)
-    for i in superset:
-        new_chances[i][biasnum] = P[i]
-    biasnum += 1
-       
+  
 ##plotting
 mode = 1
 cores = 4  
@@ -188,9 +149,14 @@ def calculate_spinless(arguments):
         spinless_gamma_right, 
         beta
     ) 
-    spinless_calculation.set_distribution(new_chances[:, biasnum])
+    
+    spinless_calculation.calculate_number_matrix_k()
+    spinless_calculation.calculate_number_matrix_w( 0.35, np.linspace( -1.0, 1.0, 1000))
+    ### self-consistency loop
+    P = spinless_calculation.selfconsistent_distribution(tolerance)
+    
+    spinless_calculation.set_distribution(P)
     epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
-  
     spinless_transmission = spinless_calculation.full_transmission(epsilon)
     spinless_current = realscale*np.trapz(spinless_transmission, epsilon) 
      
@@ -205,10 +171,26 @@ biasnum = 0
 for this_bias in biaswindow:       
     manager.add_params([this_bias, alpha, tau, gamma, capacitive, beta, levels, biasnum])  
     biasnum += 1
+try:    
+    manager.execute()
+    results = manager.final()
+    results = np.array(results)
+except ValueError:
+    #In case the task manager fails, it is far clearer to debug from here.
+    print 'Multi-threading failed. Single thread gives:'
+    bias = []
+    current = []
+    for i in range( manager.param_count ):
+        params = manager.get(i);
+        task_bias, task_current = calculate_spinless(params)
+        
+        bias.append( task_bias )
+        current.append ( task_current )
+        
+    results = np.zeros((manager.param_count, 2))
+    results[:, 0] = np.array(bias)
+    results[:, 1] = np.array(current)
     
-manager.execute()
-results = manager.final()
-results = np.array(results)
 
 calculated_bias = results[:,0]
 calculated_current = results[:,1]/1e-9

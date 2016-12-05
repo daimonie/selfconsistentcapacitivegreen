@@ -42,12 +42,12 @@ class igfwl(object):
         """This gives us the single-particle Green's function with some background."""
         
         mu_background = np.diag([self.epsilon[i][i] for i in range(0,self.dim)])
-        
+         
         ket_background = self.ket( background )
         #Formal, as equation 3.10
         for i in range(mu_background.shape[0]):
             for j in range(mu_background.shape[1]):
-                for p in range( self.dim ):
+                for p in range( self.dim ): 
                     if ket_background[p] == 1.0:
                         mu_background[i,j] += self.u[i, p]
         #Green's function with a single-particle background
@@ -60,7 +60,7 @@ class igfwl(object):
         
         superset = []
         for i in range(0, 2**(self.dim)):
-            if  (number & i)==number:
+            if self.bitwise_and( number, i)==number:
                 superset.append(i)
         return superset
     def number(self, ket):
@@ -74,12 +74,8 @@ class igfwl(object):
             q += 1 
         return final
     def ket(self, number):
-        """Turns an integer number into a ket."""
-        print "KETTING"
-        print "KET %d" %  number
-        for i in range(0,self.dim):
-            print "\t", 2**i, number, (2**i==number&2**i)*1.
-        final_ket = np.array( [(2**i==number&2**i)*1.0 for i in range(0,self.dim)] )
+        """Turns an integer number into a ket.""" 
+        final_ket = np.array( [(2**i==self.bitwise_and( number, 2**i))*1.0 for i in range(0,self.dim)] ) 
         return final_ket 
     def set_distribution(self, P):
         
@@ -116,12 +112,9 @@ class igfwl(object):
             probability /= probability.sum() 
             return probability
     
-    def transport_channel_ij(self, i, j, chances, epsilon):
-        state_i = self.ket( i ) 
-        state_j = self.ket( j ) 
-                 
-        __, ad_gf = self.singleparticlebackground( state_i ) 
-        ret_gf, __ = self.singleparticlebackground( state_j ) 
+    def transport_channel_ij(self, i, j, chances, epsilon): 
+        __, ad_gf = self.singleparticlebackground( i ) 
+        ret_gf, __ = self.singleparticlebackground( j ) 
         
         transport_k_ij = np.real([np.trace(np.dot(self.gamma_left, ( np.dot(
             ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon])
@@ -159,6 +152,9 @@ class igfwl(object):
                 for ll in self.generate_superset(k):
                     scale += chances[k] * chances[l] * chances[ll]
         return scale
+    def bitwise_and(self, a, b):
+        return np.bitwise_and( np.uint64(a), np.uint64(b));
+    
     def spectral_channel(self, k, epsilon):
         """Returns the spectral function for the many body state k."""
         raise Exception("Needs to be redone") 
@@ -177,7 +173,8 @@ class igfwl(object):
             #for each number operator
             for j in superset: 
                 #remember that the numbered many-body state j is binary encoded!
-                if (i+1) & j == (i+1):
+                #if (i+1) & j == (i+1):
+                if self.bitwise_and( i+1, j) == i+1:
                     self.k_matrix[i, j] = 1.0  
         pass
     def calculate_number_matrix_w(self, bias, epsilon_range):
