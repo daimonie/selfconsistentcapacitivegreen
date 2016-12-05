@@ -1,4 +1,10 @@
 #!/bin/bash
 clear
-python current.py -u .300 -e -0.010 -t 0.010 -g 0.010 -a 0.470 -b 2800.0
+rm job.dat
+python current.py -u .300 -e -0.010 -t 0.006 -g 0.006 -a 0.65 -b 2900.0 >> job.dat
+sleep 1
+mv current.png job.png
+sleep 1
+chromium job.png
+sleep 1
 echo "DONE"

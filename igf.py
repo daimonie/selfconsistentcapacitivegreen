@@ -38,6 +38,8 @@ class igfwl(object):
             
             self.k_matrix = None
             self.w_matrix = None
+            
+            self.label = "Nameless"
     def singleparticlebackground(self, background):
         """This gives us the single-particle Green's function with some background."""
         
@@ -84,7 +86,7 @@ class igfwl(object):
         self.external_distribution = True
         self.external_distribution_array = P
         
-        #print "new distribution set. ", P
+        #print >> sys.stderr,  "new distribution set. ", P
     def distribution(self):
         """Sets the boltzmann distribution function and generates the density-matrix."""
         
@@ -103,8 +105,8 @@ class igfwl(object):
                 if norm_squared > 0: #zero is appended at the end
                     energy          = np.dot(state.T, np.dot( self.epsilon, state))
                     interaction     = np.dot(state.T, np.dot( self.u, state))/2.0 #divide by two. Otherwise, <l r| U |l r > =  U_LR + U_RL = 2U
-                    #print state, np.dot(self.u, state) 
-                    #print interaction
+                    #print >> sys.stderr,  state, np.dot(self.u, state) 
+                    #print >> sys.stderr,  interaction
                     energy_vector.append( energy + interaction )
                     
             energy_vector.insert(0, 0.0) 
@@ -120,7 +122,7 @@ class igfwl(object):
             ret_gf(ee),  np.dot(self.gamma_right, ad_gf(ee)))))) for ee in epsilon])
         
         
-        #print "%d\t%d\t%.3f\t%.3f\t%2.3f" % (i,j,np.min(transport_k_ij), np.max(transport_k_ij), chances[i]*chances[j])
+        #print >> sys.stderr,  "%d\t%d\t%.3f\t%.3f\t%2.3f" % (i,j,np.min(transport_k_ij), np.max(transport_k_ij), chances[i]*chances[j])
         transport_k_ij *= chances[i] * chances[j]
         
         return transport_k_ij
@@ -141,7 +143,7 @@ class igfwl(object):
         for k in self.generate_superset(0):
             transport += self.transport_channel(k, epsilon)
         scale = self.scaler()
-        #print >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale 
+        #print >> sys.stderr,  >> sys.stderr, "Scaler found to be %2.3f, scaling T(E)." % scale 
         transport /= scale
         return transport
     def scaler(self):
@@ -260,12 +262,15 @@ class igfwl(object):
         
         if np.sum(np.square(P)) < 0:
             raise TypeError("P did not converge?")
+        else:
+            P = np.abs(P)
+            P /= np.sum(np.square(P)) #Final normalization
         P0 = initial_guess
-        print "Self-consistency converged after %d generations. \n" % generation
-        print "\t Initial probability vector:"
-        print "\t %.4e\t%.4e\t%.4e\t%.4e" % (P0[0], P0[1], P0[2], P0[3])
-        print "\t Final probability vector:"
-        print "\t %.4e\t%.4e\t%.4e\t%.4e" % (P[0], P[1], P[2], P[3]) 
+        print >> sys.stderr,  "Self-consistency converged after %d generations (%s). \n" % (generation, self.label)
+        print >> sys.stderr,  "\t Initial probability vector:"
+        print >> sys.stderr,  "\t %.4e\t%.4e\t%.4e\t%.4e" % (P0[0], P0[1], P0[2], P0[3])
+        print >> sys.stderr,  "\t Final probability vector:"
+        print >> sys.stderr,  "\t %.4e\t%.4e\t%.4e\t%.4e" % (P[0], P[1], P[2], P[3]) 
         self.set_distribution( P ) 
         
         return P
