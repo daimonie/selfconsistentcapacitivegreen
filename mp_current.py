@@ -138,12 +138,11 @@ def calculate_spinless(arguments):
     ) 
     spinless_calculation.label = "self consistent bias %.3f" % bias
     spinless_calculation.calculate_number_matrix_k()
-    spinless_calculation.calculate_number_matrix_w( 0.35, np.linspace( -1.0, 1.0, 1000))
+    spinless_calculation.calculate_number_matrix_w( bias, np.linspace( -1.0, 1.0, 1000))
     ### self-consistency loop
     P = spinless_calculation.selfconsistent_distribution(tolerance)
-    P /= np.sum(np.square(P))
-    print >> sys.stderr, P, np.sum(np.square(P))
-    
+    P /= np.sqrt( np.sum(np.square(P)))
+
     spinless_calculation.set_distribution(P)
     epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
     spinless_transmission = spinless_calculation.full_transmission(epsilon)
