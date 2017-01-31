@@ -302,6 +302,6 @@ plt.tick_params(which='minor', length=10)
 time.sleep(1)
 ################################
 
-plt.savefig('current.png')
+plt.savefig('mp_current.png')
 global_time_end = time.time ()
 print >> sys.stderr,   "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
