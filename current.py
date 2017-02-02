@@ -15,10 +15,11 @@ from matplotlib.ticker import FormatStrFormatter
 import time
 global_time_start = time.time()
 
-tolerance = 1e-5 
-bias_res = 250
+tolerance = 1e-7 
+bias_res = 50
 
-biaswindow = np.linspace( -.175, .175, bias_res) 
+maxBias = 0.25;
+biaswindow = np.linspace( -maxBias, maxBias, bias_res) 
 
 realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
 epsilon_res = 100
@@ -91,56 +92,61 @@ alpha = args.alpha
 capacitive = args.capacitive
 levels = args.epsilon
 beta = args.beta 
-  
-##plotting
-mode = 1
-cores = 4  
+   
 ###  
-for this_bias in biaswindow:    
+results = []
+biasnum = 0;
+lastDistribution = 0;
+
+for bias in biaswindow:    
     epsilon_res = 250  
     
     realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
 
-    spinless_hamiltonian = np.zeros((2,2))
-    spinless_hamiltonian[0][0] = levels + 0.5 * alpha * bias
-    spinless_hamiltonian[1][1] = levels - 0.5 * alpha * bias
+    spinlessHamiltonian = np.zeros((2,2))
+    spinlessHamiltonian[0][0] = levels + 0.5 * alpha * bias
+    spinlessHamiltonian[1][1] = levels - 0.5 * alpha * bias
 
-    spinless_tunnel = np.zeros((2,2))
-    spinless_tunnel[0][1] = -tau
-    spinless_tunnel[1][0] = -tau
+    spinlessTunnellingMatrix = np.zeros((2,2))
+    spinlessTunnellingMatrix[0][1] = -tau
+    spinlessTunnellingMatrix[1][0] = -tau
 
-    spinless_interaction = np.zeros((2,2))
-    spinless_interaction[0][1] = capacitive
-    spinless_interaction[1][0] = capacitive
+    spinlessInteraction = np.zeros((2,2))
+    spinlessInteraction[0][1] = capacitive
+    spinlessInteraction[1][0] = capacitive
 
 
-    spinless_gamma_left = np.zeros((2,2))
-    spinless_gamma_left[0][0] = gamma
+    spinlessGammaLeft = np.zeros((2,2))
+    spinlessGammaLeft[0][0] = gamma
 
-    spinless_gamma_right = np.zeros((2,2))
-    spinless_gamma_right[1][1] = gamma
+    spinlessGammaRIght = np.zeros((2,2))
+    spinlessGammaRIght[1][1] = gamma
 
-    spinless_calculation = igfwl(
-        spinless_hamiltonian, 
-        spinless_tunnel,
-        spinless_interaction, 
-        spinless_gamma_left,
-        spinless_gamma_right, 
+    spinlessCalculation = igfwl(
+        spinlessHamiltonian, 
+        spinlessTunnellingMatrix,
+        spinlessInteraction, 
+        spinlessGammaLeft,
+        spinlessGammaRIght, 
         beta
     ) 
-    spinless_calculation.label = "self consistent bias %.3f" % bias
-    spinless_calculation.calculate_number_matrix_k()
-    spinless_calculation.calculate_number_matrix_w( -bias, np.linspace( -1.0, 1.0, 1000))
+    if biasnum > 0:
+        spinlessCalculation.set_distribution(lastDistribution);
+    spinlessCalculation.label = "self consistent bias %.3f" % bias
+    spinlessCalculation.calculate_number_matrix_k()
+    spinlessCalculation.calculate_number_matrix_w( -bias, np.linspace( -1.0, 1.0, 1000))
     ### self-consistency loop
-    P = spinless_calculation.selfconsistent_distribution(tolerance)
+    P = spinlessCalculation.selfconsistent_distribution(tolerance)
     P /= np.sqrt( np.sum(np.square(P)))
 
-    spinless_calculation.set_distribution(P)
+    spinlessCalculation.set_distribution(P)
+    lastDistribution = P;
+
     epsilon = np.linspace(-bias/2.0, bias/2.0, epsilon_res);
-    spinless_transmission = spinless_calculation.full_transmission(epsilon)
+    spinless_transmission = spinlessCalculation.full_transmission(epsilon)
     spinless_current = -realscale*np.trapz(spinless_transmission, epsilon) 
      
-    print >> sys.stderr,  P 
+    #print >> sys.stderr,  P 
     results.append( [bias, spinless_current, P[0], P[1], P[2], P[3]])
     biasnum += 1
 
