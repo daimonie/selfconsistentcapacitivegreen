@@ -11,10 +11,24 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.ticker import FormatStrFormatter
+
+
+#griddata to format data
+from matplotlib.mlab import griddata 
+
+#3d surf plot
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+import matplotlib.pyplot as plt
+
+from matplotlib.colors import BoundaryNorm
+from matplotlib.ticker import MaxNLocator
+
 ### parameters
 import time
 global_time_start = time.time()
-
+###
 tolerance = 1e-7  
 
 maxBias = 0.25; 
@@ -33,8 +47,13 @@ levels = -capacitive -1e-8
 
 intervalW = np.linspace( -1.0, 1.0, 1000);
 
-for bias in np.linspace(-.2, .2, 100):
-    for beta in np.linspace(0, 1000, 100):
+numPoints = 10;
+
+biasArray = np.linspace( -.25, .25, 25);
+betaArray = np.linspace(0, 1000, 25);
+  
+for bias in biasArray:
+    for beta in betaArray:
         spinlessHamiltonian = np.zeros((2,2))
         spinlessHamiltonian[0][0] = levels + 0.5 * alpha * bias
         spinlessHamiltonian[1][1] = levels - 0.5 * alpha * bias
@@ -72,3 +91,6 @@ for bias in np.linspace(-.2, .2, 100):
         newP = spinlessCalculation.selfconsistent_distribution(tolerance)
 
         print "%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t" % (bias, beta, newP[0], newP[1], newP[2], newP[3]);
+
+        print >>sys.stderr, "%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t" % (bias, beta, newP[0], newP[1], newP[2], newP[3]);
+ 
