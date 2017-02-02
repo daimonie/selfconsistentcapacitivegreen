@@ -96,16 +96,8 @@ beta = args.beta
 mode = 1
 cores = 4  
 ###  
-def calculate_spinless(arguments):   
-    epsilon_res = 250 
-    bias        = arguments[0]
-    alpha       = arguments[1]
-    tau         = arguments[2]
-    gamma       = arguments[3]
-    capacitive  = arguments[4]
-    beta        = arguments[5]
-    levels      = arguments[6]
-    biasnum     = arguments[7] 
+for this_bias in biaswindow:    
+    epsilon_res = 250  
     
     realscale   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0]
 
@@ -148,17 +140,8 @@ def calculate_spinless(arguments):
     spinless_transmission = spinless_calculation.full_transmission(epsilon)
     spinless_current = -realscale*np.trapz(spinless_transmission, epsilon) 
      
-    print >> sys.stderr,  P
-    return [bias, spinless_current, P[0], P[1], P[2], P[3]]
-
-print >> sys.stderr,  "Calculating current..."
-#### calculate current 
-results = []
-biasnum = 0;
-for this_bias in biaswindow:           
-    params = [this_bias, alpha, tau, gamma, capacitive, beta, levels, biasnum]
-
-    results.append( calculate_spinless( params ))
+    print >> sys.stderr,  P 
+    results.append( [bias, spinless_current, P[0], P[1], P[2], P[3]])
     biasnum += 1
 
 results = np.array(results);
@@ -169,7 +152,7 @@ results = np.array(results);
 calculated_bias = results[:,0]
 calculated_current = results[:,1]/1e-9
 
-for i in range( calculated_bias.shape[0]):
+for i in range( calculated_bias.shape[0] ):
     print "%.3f\t%.3f" % ( calculated_bias[i], calculated_current[i] )
 
 #######################################
