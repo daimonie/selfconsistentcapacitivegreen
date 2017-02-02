@@ -238,9 +238,11 @@ class igfwl(object):
         difference = 1.00
         generation = 0.0
         
+        norm = lambda pp: np.abs(pp)/np.sum(np.square(pp));
+
         P = initial_guess
-        while difference > tolerance:
-            number_vector_error = lambda pp: np.sum( np.square( np.dot(self.w_matrix, np.abs(pp))-np.dot(self.k_matrix, np.abs(pp))))
+        while difference > tolerance and generation < 500:
+            number_vector_error = lambda pp: np.sum( np.square( np.dot(self.w_matrix, norm(pp))-np.dot(self.k_matrix, norm(pp))))
             
             #Find minimum using Nelder-Mead method. Note that both the self-consistency and the Nelder-Mead are
             #   vulnerable for bistability (more than one saddle point)
@@ -259,6 +261,9 @@ class igfwl(object):
             difference = np.sum( np.square( P-P_previous))
             
             generation += 1
+            if generation > 100:
+                if generation%100 == 0:
+                    print >> sys.stderr, 'Generation %d \n' % generation
         
         if np.sum(np.square(P)) < 0:
             raise TypeError("P did not converge?")

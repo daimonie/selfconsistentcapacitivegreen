@@ -1,4 +1,4 @@
-Regular calculation modules.
+#Regular calculation modules.
 import numpy as np 
 import scipy as sp 
 #Allows a debug-output stream.
@@ -38,24 +38,33 @@ filename    = args.filename
 gridsize    = args.gridsize
  
 file_handler = open( filename, "r" ); 
-data = np.genfromtxt(file_handler, dtype=None, usecols=range(0,cols)); #excluding the symtype col
+data = np.genfromtxt(file_handler, dtype=None, usecols=range(0,6)); #excluding the symtype col
 
 arrayBias = data[:, 0]
-arrayBeta = data[:, 1]
-arrayP0 = data[:, 2]
-arrayP1 = data[:, 3]
-arrayP2 = data[:, 4]
-arrayP3 = data[:, 5]
+arrayBeta = data[:, 1] 
 
 biasArray = np.linspace( np.min(arrayBias), np.max(arrayBias), gridsize);
-arrayBeta = np.linspace( np.min(arrayBeta), np.max(arrayBeta), gridsize);
+betaArray = np.linspace( np.min(arrayBeta), np.max(arrayBeta), gridsize);
 
 x = arrayBias;
 y = arrayBeta;  
 
-bias, beta = np.meshgrid( biasArray, betaArray);
+bias, beta = np.meshgrid( biasArray, betaArray); 
+z = [];
+if zColumn < 2:
+	raise Exception('There is no point in plotting x,y,x or x,y,y.');
+elif zColumn < 6:
+	z = griddata( arrayBias, arrayBeta, data[:, zColumn], biasArray, betaArray, interp='linear');
+elif zColumn > 5:
 
-z = griddata( arrayBias, arrayBeta, arrayP0, biasArray, betaArray, interp='linear');
+	norm = np.square(data[:, 2]);
+	norm += np.square(data[:, 3]);
+	norm += np.square(data[:, 4]);
+	norm += np.square(data[:, 5]);
+
+	norm = np.square(norm);
+
+	z = griddata( arrayBias, arrayBeta, norm, biasArray, betaArray, interp='linear');
 
 fig, ax = plt.subplots();
 

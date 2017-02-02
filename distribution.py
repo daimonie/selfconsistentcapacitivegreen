@@ -29,6 +29,8 @@ from matplotlib.ticker import MaxNLocator
 import time
 global_time_start = time.time()
 ###
+gridsize = 20;
+
 tolerance = 1e-7  
 
 maxBias = 0.25; 
@@ -49,8 +51,8 @@ intervalW = np.linspace( -1.0, 1.0, 1000);
 
 numPoints = 10;
 
-biasArray = np.linspace( -.25, .25, 25);
-betaArray = np.linspace(0, 1000, 25);
+biasArray = np.linspace( -.25, .25, gridsize);
+betaArray = np.linspace(0, 1000, gridsize);
   
 for bias in biasArray:
     for beta in betaArray:
@@ -94,3 +96,5 @@ for bias in biasArray:
 
         print >>sys.stderr, "%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t" % (bias, beta, newP[0], newP[1], newP[2], newP[3]);
  
+global_time_end = time.time ()
+print >> sys.stderr,   "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)

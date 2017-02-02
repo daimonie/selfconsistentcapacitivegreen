@@ -276,7 +276,8 @@ plt.tick_params(which='minor', length=10)
 #prevents lagg on desktop
 time.sleep(1)
 ################################
-
-plt.savefig('current.svg')
+fileName = 'current.svg';
+plt.savefig(fileName)
+print >> sys.stderr, 'Saving %s' % fileName;
 global_time_end = time.time ()
 print >> sys.stderr,   "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
