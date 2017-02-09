@@ -31,7 +31,7 @@ default_tau = 0.010
 default_gamma = 0.010
 default_alpha = 0.40
 default_capacitive = 0.300
-default_levels = -default_capacitive -1e-4 
+default_levels = -default_capacitive*0 -1e-4 
 default_beta = 250
 #parameter parser
 parser  = argparse.ArgumentParser(prog="current map parallel",
@@ -130,8 +130,9 @@ for bias in biaswindow:
         spinlessGammaRIght, 
         beta
     ) 
-    if biasnum > 0:
-        spinlessCalculation.set_distribution(lastDistribution);
+    # Gave wildly .. weird currents when I did this.
+    #if biasnum > 0:
+    #    spinlessCalculation.set_distribution(lastDistribution);
     spinlessCalculation.label = "self consistent bias %.3f" % bias
     spinlessCalculation.calculate_number_matrix_k()
     spinlessCalculation.calculate_number_matrix_w( -bias, np.linspace( -1.0, 1.0, 1000))
