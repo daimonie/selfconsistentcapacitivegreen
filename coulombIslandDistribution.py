@@ -63,9 +63,11 @@ singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv
 
 
 # inverse temperature
-for betaFraction in np.linspace(0.0, 2.0, 300):
+betaIteration = 0;
+betaMax = 300;
+for betaFraction in np.linspace(0.0, 2.0, betaMax):
 	beta = (1e-9 + betaFraction*capacitive)**(-1); # Haug & Jauho neatly show a table that uses temperatures proportional to U
-	print >> sys.stderr, "Calculation for beta=%.3f (%.3f U)" % (beta, betaFraction)
+	print >> sys.stderr, "Calculation for beta=%.3f (%.3f U). Progress: %d/%d ." % (beta, betaFraction, betaIteration, betaMax)
 	# Fermi-Dirac distribution
 
 	boltzmann = lambda epsilon: (epsilon==0.0)*1.0;
@@ -149,16 +151,15 @@ for betaFraction in np.linspace(0.0, 2.0, 300):
 	numericalMethod = 'SLSQP'; #Sequential Least Squares Programming
 	numericalConstraints = [];
 	numericalConstraints.append({
-	'type': 'eq', # fun needs to equal zero
-	'fun': lambda p: np.sum(p)-1,
-	'jac': lambda p: 2*p
-	});
-	for i in range(4):
-		numericalConstraints.append({
+	'type': 'eq', # fun needs to equal zero; This normalises the minimised vector
+	'fun': lambda p: np.sum(p)-1 
+	}); 
+	#Vector needs to be positive
+	numericalConstraints.append({
 		'type': 'ineq', # fun needs to be non negative
-		'fun': lambda p: p[i],
-		'jac': lambda p: 2*p[i]
-		});
+		'fun': lambda p: p 
+	}); 
+
 	result = minimize( numberError, initialGuess, method=numericalMethod, constraints=numericalConstraints, tol=numericalTolerance);
 	selfConsistentProbabilityVector = np.array(result.x);
 
