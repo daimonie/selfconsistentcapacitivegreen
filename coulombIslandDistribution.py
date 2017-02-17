@@ -27,9 +27,11 @@ alpha = 0.00;
 # Interaction strength
 capacitive = 0.300;
 # Zero-bias level. Slightly below zero to improve convergence.
-levels = -1e-8 ;
+levels = 0 ;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4);
+#
+betaMax = 100;
 
 print >> sys.stderr, "Setting system matrices.\n";
 #system matrices
@@ -64,10 +66,10 @@ singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv
 
 # inverse temperature
 betaIteration = 0;
-betaMax = 300;
 for betaFraction in np.linspace(0.0, 2.0, betaMax):
 	beta = (1e-9 + betaFraction*capacitive)**(-1); # Haug & Jauho neatly show a table that uses temperatures proportional to U
 	print >> sys.stderr, "Calculation for beta=%.3f (%.3f U). Progress: %d/%d ." % (beta, betaFraction, betaIteration, betaMax)
+	betaIteration += 1
 	# Fermi-Dirac distribution
 
 	boltzmann = lambda epsilon: (epsilon==0.0)*1.0;
