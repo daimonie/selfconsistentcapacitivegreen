@@ -27,11 +27,21 @@ alpha = 0.00;
 # Interaction strength
 capacitive = 0.300;
 # Zero-bias level. Slightly below zero to improve convergence.
-levels = 0 ;
+levels = -1e-9;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4);
-#
-betaMax = 100;
+# Temperature (units U); number, min, max
+betaNumber = 100;
+betaMin = -7;
+betaMax = 0;
+###
+betaFractionArray = np.zeros((betaNumber));
+i = 0;
+for power in np.linspace(betaMin, betaMax, betaNumber):
+	betaFractionArray[i] = 10**(power);
+	i += 1;
+betaFractionArray = betaFractionArray[::-1];
+
 
 print >> sys.stderr, "Setting system matrices.\n";
 #system matrices
@@ -46,6 +56,7 @@ interactionKet01[1][1] = capacitive;
 interactionKet10 = np.zeros((2,2));
 interactionKet10[0][0] = capacitive; 
 
+interactionKet11 = interactionKet01 + interactionKet10;
 
 gammaLeft = np.zeros((2,2));
 gammaLeft[0][0] = gamma;
@@ -59,16 +70,16 @@ selfEnergy = 0.5j*(gammaLeft + gammaRight);
 # single-particle Green's Functions. The numbers denote the state, ket{n_1 n_2}.
 # G^{lambda+}
 singleParticleGreensFunctionKet00 = lambda epsilon: np.linalg.inv( np.eye( 2 ) * epsilon - hamiltonian + selfEnergy);
-singleParticleGreensFunctionKet01 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) + interactionKet01);
-singleParticleGreensFunctionKet10 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) + interactionKet10);
-singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) + interactionKet10 - interactionKet01);
+singleParticleGreensFunctionKet01 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet01);
+singleParticleGreensFunctionKet10 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet10);
+singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet11);
 
 
 # inverse temperature
 betaIteration = 0;
-for betaFraction in np.linspace(0.0, 2.0, betaMax):
+for betaFraction in betaFractionArray:
 	beta = (1e-9 + betaFraction*capacitive)**(-1); # Haug & Jauho neatly show a table that uses temperatures proportional to U
-	print >> sys.stderr, "Calculation for beta=%.3f (%.3f U). Progress: %d/%d ." % (beta, betaFraction, betaIteration, betaMax)
+	print >> sys.stderr, "Calculation for beta=%.3e (%.3e U). Progress: %d/%d ." % (beta, betaFraction, betaIteration, betaNumber)
 	betaIteration += 1
 	# Fermi-Dirac distribution
 
@@ -104,6 +115,17 @@ for betaFraction in np.linspace(0.0, 2.0, betaMax):
 	integralLesserKet01 = np.real(integralLesserKet01);
 	integralLesserKet10 = np.real(integralLesserKet10);
 	integralLesserKet11 = np.real(integralLesserKet11);
+
+	def printMatrix(M):
+		for i in range(2):
+			print >> sys.stderr, "\t%.5e\t%.5e" % (M[i][0],M[i][1])
+		print >> sys.stderr, "\n";
+
+	printMatrix( integralLesserKet00 );
+	printMatrix( integralLesserKet01 );
+	printMatrix( integralLesserKet10 );
+	printMatrix( integralLesserKet11 );
+ 
 	#K matrix
 	kappaMatrix = np.zeros((2,4)) +0j;
 	kappaMatrix[0][1] = 1;
