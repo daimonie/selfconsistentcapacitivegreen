@@ -31,9 +31,9 @@ levels = -1e-9;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4);
 # Temperature (units U); number, min, max
-betaNumber = 100;
-betaMin = -7;
-betaMax = 0;
+betaNumber = 200;
+betaMin = -4;
+betaMax = 2;
 ###
 betaFractionArray = np.zeros((betaNumber));
 i = 0;
@@ -48,7 +48,6 @@ print >> sys.stderr, "Setting system matrices.\n";
 hamiltonian = np.zeros((2,2));
 hamiltonian[0][0] = levels;
 hamiltonian[1][1] = levels;
- 
 
 interactionKet01 = np.zeros((2,2));
 interactionKet01[1][1] = capacitive; 
@@ -78,17 +77,13 @@ singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv
 # inverse temperature
 betaIteration = 0;
 for betaFraction in betaFractionArray:
-	beta = (1e-9 + betaFraction*capacitive)**(-1); # Haug & Jauho neatly show a table that uses temperatures proportional to U
+	beta = capacitive*(1e-9 + betaFraction*capacitive)**(-1); # Haug & Jauho neatly show a table that uses temperatures proportional to U
 	print >> sys.stderr, "Calculation for beta=%.3e (%.3e U). Progress: %d/%d ." % (beta, betaFraction, betaIteration, betaNumber)
 	betaIteration += 1
 	# Fermi-Dirac distribution
 
-	boltzmann = lambda epsilon: (epsilon==0.0)*1.0;
-	fd = lambda epsilon: 1.0;
-
-	if beta < 1e3:
-		boltzmann = lambda epsilon: np.exp(-beta*epsilon);
-		fd = lambda epsilon: 1 / (1+np.exp(-beta*epsilon)); 
+	boltzmann = lambda epsilon: np.exp(-beta*epsilon);
+	fd = lambda epsilon: 1 / (1+np.exp(-beta*epsilon)); 
 
 
 
@@ -125,7 +120,7 @@ for betaFraction in betaFractionArray:
 	printMatrix( integralLesserKet01 );
 	printMatrix( integralLesserKet10 );
 	printMatrix( integralLesserKet11 );
- 
+
 	#K matrix
 	kappaMatrix = np.zeros((2,4)) +0j;
 	kappaMatrix[0][1] = 1;
