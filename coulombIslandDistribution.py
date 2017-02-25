@@ -30,6 +30,8 @@ capacitive = 0.300;
 levels = -1e-9;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4);
+# bias
+bias = 0.05
 # Temperature (units U); number, min, max
 betaNumber = 200;
 betaMin = -4;
@@ -95,16 +97,18 @@ for betaFraction in betaFractionArray:
 
 	print >> sys.stderr, "Calculating lesser integrals.\n";
 	# Conversion for integral over W in the self-consistent equation
+	# NB: sum Gamma_alpha = gamma I
 	factorW = 1./(2.*np.pi)*gamma +0j ;
+	occupancy = lambda epsilon: fd(epsilon-bias/2) + fd(epsilon+bias/2);
 	# Actual integration
 	for i in range(2):
 		#NB: We only need diagonal elements
 		# this is where it would cast to real otherwise.
 		for j in range(2):
-			integralLesserKet00[i][i] += factorW * np.trapz( [fd(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet01[i][i] += factorW * np.trapz( [fd(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet10[i][i] += factorW * np.trapz( [fd(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet11[i][i] += factorW * np.trapz( [fd(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
 		#
 	integralLesserKet00 = np.real(integralLesserKet00);
 	integralLesserKet01 = np.real(integralLesserKet01);
