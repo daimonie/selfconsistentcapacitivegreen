@@ -13,14 +13,19 @@ from sympy import Matrix
 from sympy import matrix2numpy
 # Mostly to have access to the STDError stream, allowing output past a pipe
 import sys  
+#some small functions I use
+sys.path.append('/home/daimonie/ssd/git/PythonUtils')
+from utils import *
 # Argument parsing
 import argparse as argparse    
+#supress warnings
+import warnings
 # Allows tic/toc on the file execution.
 import time
 global_time_start = time.time();
 
 #Feedback
-print >> sys.stderr, "Distribution for Quantum Dot.\nSetting parameters.\n";  
+print >> sys.stderr, "Distribution for Coulomb Island.\nSetting parameters.\n";  
 # Units of the current.
 physicalCurrentUnit   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0];
 # Lead-Molecule coupling (symmetric)
@@ -36,14 +41,13 @@ intervalW = np.linspace( -10.0, 10.0, 1e4);
 # bias
 bias = 0.0
 # Temperature (units U); number, min, max
-betaNumber = 100;
-betaMin = -9.00;
-betaMax = 9;
+betaNumber = 25;
+betaMin = 1e-2 ;
+betaMax = 2.0;
 betaArray = np.linspace(betaMin, betaMax, betaNumber); 
-i = 0;
-for power in betaArray:
-	betaArray[i] = (10.0**power)/capacitive; 
-	i += 1
+
+betaArray = np.array( [1e-3/capacitive] );
+
 doInv = 1; 
 ###    
 print >> sys.stderr, "Setting system matrices.\n";
@@ -104,33 +108,28 @@ for betaFraction in betaArray:
 	factorW = 1./(2.*np.pi)*gamma +0j ; 
 	# Actual integration
 	for i in range(2):
-		occupancy = lambda epsilon: fd(epsilon - bias/2.)+ fd(epsilon + bias/2.);
 
-		integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
-		integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
-		integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
-		integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
-		
-		integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
-		integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
-		integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
-		integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+		with warnings.catch_warnings():
+			warnings.simplefilter("ignore");
+
+			occupancy = lambda epsilon: 0.5 * (fd(epsilon - bias/2.)+ fd(epsilon + bias/2.));
+
+			integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+
+			integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+			integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+			#
 		#
+	#
 	integralLesserKet00 = np.real(integralLesserKet00);
 	integralLesserKet01 = np.real(integralLesserKet01);
 	integralLesserKet10 = np.real(integralLesserKet10);
-	integralLesserKet11 = np.real(integralLesserKet11);
-
-	def printMatrix(M):
-		for i in range(2):
-			print >> sys.stderr, "\t%.5e\t%.5e" % (M[i][0],M[i][1])
-		print >> sys.stderr, "\n";
-
-	printMatrix( integralLesserKet00 );
-	printMatrix( integralLesserKet01 );
-	printMatrix( integralLesserKet10 );
-	printMatrix( integralLesserKet11 );
-
+	integralLesserKet11 = np.real(integralLesserKet11); 
 	#K matrix
 	kappaMatrix = np.zeros((2,4)) +0j;
 	kappaMatrix[0][1] = 1;
@@ -140,7 +139,7 @@ for betaFraction in betaArray:
 
 	print >> sys.stderr, "Calculating omega matrix.\n"
 	#W matrix
-	omegaMatrix = np.zeros((2,4))
+	omegaMatrix = np.zeros((2,4)) +0j;
 
 	# w for n_1 and kappa=00
 	omegaMatrix[0][0] = integralLesserKet01[0][0] + integralLesserKet11[0][0];
@@ -173,60 +172,28 @@ for betaFraction in betaArray:
 
 	useMinimisation = 0;
 
-	densityTransform = Matrix(omegaMatrix - kappaMatrix);
+	print >> sys.stderr, "kappaMatrix:";
+	printMatrix(kappaMatrix);
+
+	print >> sys.stderr, "omegaMatrix:"; 
+	printMatrix(omegaMatrix);
+
+	densityTransform = Matrix(-(omegaMatrix - kappaMatrix));
 	nullSpace = densityTransform.nullspace();
+	nullSpaceList = [];
 
+	i = 0;
+	for nullVector in nullSpace:
+		nullSpaceList.append(matrix2numpy(nullVector)[:, 0]);
+ 
+		nullSpaceList[i] /= np.sum( nullSpaceList[i]); 
+		print np.dot( kappaMatrix, nullSpaceList[-1]);
 
-	numericalTolerance = 1e-3;
-	numericalMethod = 'SLSQP'; #Sequential Least Squares Programming
-	numericalConstraints = [];
+		i += 1;
 
-	if len(nullSpace) == 2:
-		#We have vectors that SPAN the nullspace, but we still need to find it.
-		firstNullVector = matrix2numpy(nullSpace[0]);
-		secondNullVector = matrix2numpy(nullSpace[1]);
+	nullSpaceList = np.array(nullSpaceList);
 
-		vector = lambda p: p[0] * firstNullVector + p[1] * secondNullVector
+	print >> sys.stderr, "nullSpace:";
+	printMatrix( nullSpaceList);
 
-		numericalConstraints.append({
-			'type': 'ineq', # fun needs to equal zero; This normalises the minimised vector
-			'fun': lambda p: np.sum([ lambda q: -(q<0)*1.0    for q in vector(p)])
-		}); 
-
-		result = minimize( lambda p: np.sum(vector(p))-1, np.zeros((2)), method=numericalMethod, constraints=numericalConstraints, tol=numericalTolerance);
-		selfConsistentProbabilityVector = vector(result.x); 
-		print selfConsistentProbabilityVector;
-
-	elif len(nullSpace) == 1:
-		selfConsistentProbabilityVector = matrix2numpy(nullSpace);
-	else:
-		useMinimisation = 1;
-
-
-	if useMinimisation==1:
-		#
-		numericalConstraints.append({
-		'type': 'eq', # fun needs to equal zero; This normalises the minimised vector
-		'fun': lambda p: np.sum(p)-1 
-		}); 
-		#Vector needs to be positive
-		numericalConstraints.append({
-			'type': 'ineq', # fun needs to be non negative
-			'fun': lambda p: p 
-		}); 
-		print >> sys.stderr, "Initial guess: %.5f %.5f %.5f %.5f" % (initialGuess[0],initialGuess[1],initialGuess[2],initialGuess[3]);
-		print >> sys.stderr, "Initial Error: %.3f" % numberError(initialGuess);
-	 
-		result = minimize( numberError, initialGuess, method=numericalMethod, constraints=numericalConstraints, tol=numericalTolerance);
-		selfConsistentProbabilityVector = np.array(result.x); 
-
-	raise Exception('abort');
-	separationLength = 0;
-	for i in range(4):
-		separationLength += (initialGuess[i] - selfConsistentProbabilityVector[i])**2;
-
-	print >> sys.stderr, "Final Error: %.3f" % numberError(selfConsistentProbabilityVector);
-	print >> sys.stderr, "Self-consistent result: %.5f %.5f %.5f %.5f" % (selfConsistentProbabilityVector[0],selfConsistentProbabilityVector[1],selfConsistentProbabilityVector[2],selfConsistentProbabilityVector[3]);
-	print >> sys.stderr, "Separation length: %.5f\n" % separationLength
-
-	print "%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f" % (betaIteration,beta,selfConsistentProbabilityVector[0],selfConsistentProbabilityVector[1],selfConsistentProbabilityVector[2],selfConsistentProbabilityVector[3], separationLength, bias, capacitive); 
+	raise Exception("Abort now.");
