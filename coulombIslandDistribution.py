@@ -8,6 +8,9 @@ import scipy.interpolate as si
 from scipy.optimize import minimize
 # SP.Constants contains physical constants.
 from scipy.constants import physical_constants as pc
+# Easy access to nullspace calculation
+from sympy import Matrix
+from sympy import matrix2numpy
 # Mostly to have access to the STDError stream, allowing output past a pipe
 import sys  
 # Argument parsing
@@ -31,15 +34,18 @@ levels = -1e-9;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4);
 # bias
-bias = 0.05*3.
+bias = 0.0
 # Temperature (units U); number, min, max
-betaNumber = 1000;
-betaMin = 0.01;
-betaMax = 1000;
-betaArray = np.linspace(betaMin, betaMax, betaNumber);
-### 
-
-
+betaNumber = 100;
+betaMin = -9.00;
+betaMax = 9;
+betaArray = np.linspace(betaMin, betaMax, betaNumber); 
+i = 0;
+for power in betaArray:
+	betaArray[i] = (10.0**power)/capacitive; 
+	i += 1
+doInv = 1; 
+###    
 print >> sys.stderr, "Setting system matrices.\n";
 #system matrices
 hamiltonian = np.zeros((2,2));
@@ -74,13 +80,15 @@ singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv
 # inverse temperature
 betaIteration = 0;
 for betaFraction in betaArray:
-	beta = (betaFraction * capacitive)**(-1.);
-	print >> sys.stderr, "Calculation for beta=%.3e (%.3e U). Progress: %d/%d ." % (beta, betaFraction, betaIteration, betaNumber)
+	beta = betaFraction*capacitive;
+	if doInv:
+		beta = (beta)**(-1.);
+	print >> sys.stderr, "Calculation for beta=%.3e (%.3e U). Progress: %d/%d ." % (beta, beta/capacitive, betaIteration, betaNumber)
 	betaIteration += 1
 	# Fermi-Dirac distribution
 
 	boltzmann = lambda epsilon: np.exp(-beta*epsilon);
-	fd = lambda epsilon: 1 / (1+np.exp(-beta*epsilon)); 
+	fd = lambda epsilon: 1.0 / (1.0+np.exp(-beta*epsilon)); 
 
 
 
@@ -151,39 +159,68 @@ for betaFraction in betaArray:
 	omegaMatrix[1][3] = integralLesserKet11[1][1];
 
 	# Solve kappaMatrix P = omegaMatrix P
-
 	initialGuess = np.zeros((4));
 	initialGuess[0] = boltzmann(0); #00 
 	initialGuess[1] = boltzmann(levels); #01 
 	initialGuess[2] = boltzmann(levels); #10 
 	initialGuess[3] = boltzmann(levels*2 + capacitive); #11 
+	selfConsistentProbabilityVector = initialGuess
 
 	initialGuess = initialGuess / sum(initialGuess);
-
-	print >> sys.stderr, "Initial guess: %.5f %.5f %.5f %.5f" % (initialGuess[0],initialGuess[1],initialGuess[2],initialGuess[3]);
-
 	#self-consistent equation f(x) = x
 	# error is E(x) = | f(x) - x |^2
 	numberError = lambda p: np.sum(np.abs( np.dot( omegaMatrix, p ) - np.dot( kappaMatrix, p ))**2)
 
-	print >> sys.stderr, "Initial Error: %.3f" % numberError(initialGuess);
- 
+	useMinimisation = 0;
+
+	densityTransform = Matrix(omegaMatrix - kappaMatrix);
+	nullSpace = densityTransform.nullspace();
+
+
 	numericalTolerance = 1e-3;
 	numericalMethod = 'SLSQP'; #Sequential Least Squares Programming
 	numericalConstraints = [];
-	numericalConstraints.append({
-	'type': 'eq', # fun needs to equal zero; This normalises the minimised vector
-	'fun': lambda p: np.sum(p)-1 
-	}); 
-	#Vector needs to be positive
-	numericalConstraints.append({
-		'type': 'ineq', # fun needs to be non negative
-		'fun': lambda p: p 
-	}); 
 
-	result = minimize( numberError, initialGuess, method=numericalMethod, constraints=numericalConstraints, tol=numericalTolerance);
-	selfConsistentProbabilityVector = np.array(result.x);
+	if len(nullSpace) == 2:
+		#We have vectors that SPAN the nullspace, but we still need to find it.
+		firstNullVector = matrix2numpy(nullSpace[0]);
+		secondNullVector = matrix2numpy(nullSpace[1]);
 
+		vector = lambda p: p[0] * firstNullVector + p[1] * secondNullVector
+
+		numericalConstraints.append({
+			'type': 'ineq', # fun needs to equal zero; This normalises the minimised vector
+			'fun': lambda p: np.sum([ lambda q: -(q<0)*1.0    for q in vector(p)])
+		}); 
+
+		result = minimize( lambda p: np.sum(vector(p))-1, np.zeros((2)), method=numericalMethod, constraints=numericalConstraints, tol=numericalTolerance);
+		selfConsistentProbabilityVector = vector(result.x); 
+		print selfConsistentProbabilityVector;
+
+	elif len(nullSpace) == 1:
+		selfConsistentProbabilityVector = matrix2numpy(nullSpace);
+	else:
+		useMinimisation = 1;
+
+
+	if useMinimisation==1:
+		#
+		numericalConstraints.append({
+		'type': 'eq', # fun needs to equal zero; This normalises the minimised vector
+		'fun': lambda p: np.sum(p)-1 
+		}); 
+		#Vector needs to be positive
+		numericalConstraints.append({
+			'type': 'ineq', # fun needs to be non negative
+			'fun': lambda p: p 
+		}); 
+		print >> sys.stderr, "Initial guess: %.5f %.5f %.5f %.5f" % (initialGuess[0],initialGuess[1],initialGuess[2],initialGuess[3]);
+		print >> sys.stderr, "Initial Error: %.3f" % numberError(initialGuess);
+	 
+		result = minimize( numberError, initialGuess, method=numericalMethod, constraints=numericalConstraints, tol=numericalTolerance);
+		selfConsistentProbabilityVector = np.array(result.x); 
+
+	raise Exception('abort');
 	separationLength = 0;
 	for i in range(4):
 		separationLength += (initialGuess[i] - selfConsistentProbabilityVector[i])**2;
