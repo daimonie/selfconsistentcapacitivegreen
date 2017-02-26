@@ -31,18 +31,13 @@ levels = -1e-9;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4);
 # bias
-bias = 0.05
+bias = 0.05*3.
 # Temperature (units U); number, min, max
-betaNumber = 200;
-betaMin = -4;
-betaMax = 2;
-###
-betaFractionArray = np.zeros((betaNumber));
-i = 0;
-for power in np.linspace(betaMin, betaMax, betaNumber):
-	betaFractionArray[i] = 10**(power);
-	i += 1;
-betaFractionArray = betaFractionArray[::-1];
+betaNumber = 1000;
+betaMin = 0.01;
+betaMax = 1000;
+betaArray = np.linspace(betaMin, betaMax, betaNumber);
+### 
 
 
 print >> sys.stderr, "Setting system matrices.\n";
@@ -78,8 +73,8 @@ singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv
 
 # inverse temperature
 betaIteration = 0;
-for betaFraction in betaFractionArray:
-	beta = capacitive*(1e-9 + betaFraction*capacitive)**(-1); # Haug & Jauho neatly show a table that uses temperatures proportional to U
+for betaFraction in betaArray:
+	beta = (betaFraction * capacitive)**(-1.);
 	print >> sys.stderr, "Calculation for beta=%.3e (%.3e U). Progress: %d/%d ." % (beta, betaFraction, betaIteration, betaNumber)
 	betaIteration += 1
 	# Fermi-Dirac distribution
@@ -98,17 +93,20 @@ for betaFraction in betaFractionArray:
 	print >> sys.stderr, "Calculating lesser integrals.\n";
 	# Conversion for integral over W in the self-consistent equation
 	# NB: sum Gamma_alpha = gamma I
-	factorW = 1./(2.*np.pi)*gamma +0j ;
-	occupancy = lambda epsilon: fd(epsilon-bias/2) + fd(epsilon+bias/2);
+	factorW = 1./(2.*np.pi)*gamma +0j ; 
 	# Actual integration
 	for i in range(2):
-		#NB: We only need diagonal elements
-		# this is where it would cast to real otherwise.
-		for j in range(2):
-			integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(i, j))**2 for epsilon in intervalW], intervalW)
+		occupancy = lambda epsilon: fd(epsilon - bias/2.)+ fd(epsilon + bias/2.);
+
+		integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+		integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+		integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+		integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+		
+		integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+		integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+		integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+		integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
 		#
 	integralLesserKet00 = np.real(integralLesserKet00);
 	integralLesserKet01 = np.real(integralLesserKet01);
@@ -194,4 +192,4 @@ for betaFraction in betaFractionArray:
 	print >> sys.stderr, "Self-consistent result: %.5f %.5f %.5f %.5f" % (selfConsistentProbabilityVector[0],selfConsistentProbabilityVector[1],selfConsistentProbabilityVector[2],selfConsistentProbabilityVector[3]);
 	print >> sys.stderr, "Separation length: %.5f\n" % separationLength
 
-	print "%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t" % (betaFraction,beta,selfConsistentProbabilityVector[0],selfConsistentProbabilityVector[1],selfConsistentProbabilityVector[2],selfConsistentProbabilityVector[3], separationLength); 
+	print "%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f" % (betaIteration,beta,selfConsistentProbabilityVector[0],selfConsistentProbabilityVector[1],selfConsistentProbabilityVector[2],selfConsistentProbabilityVector[3], separationLength, bias, capacitive); 
