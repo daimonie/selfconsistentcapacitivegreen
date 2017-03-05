@@ -41,9 +41,9 @@ intervalW = np.linspace( -10.0, 10.0, 1e4);
 # bias
 bias = 0.0
 # Temperature (units U); number, min, max
-betaNumber = 250-179;
-betaMin = 7.151;
-betaMax = 10.0;
+betaNumber = 100;
+betaMin = 1e-2;
+betaMax = 10.0+1e-2;
 betaArray = np.linspace(betaMin, betaMax, betaNumber);  
 
 doInv = 1; 
@@ -204,7 +204,7 @@ for betaFraction in betaArray:
 		else:
 			raise Exception("Occupation number n[%d]=%.3f is unphysical." % (i, n[i]));
 
-	print "%.3e\t%.3e\t%.3e\t%.3e\t" % (betaFraction, beta, n[0], n[1]);
+	print "%.9e\t%.9e\t%.9e\t%.9e\t" % (betaFraction, beta, n[0], n[1]);
 
 #toc
 global_time_end = time.time ()

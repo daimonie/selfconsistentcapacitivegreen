@@ -70,9 +70,12 @@ interactionKet11 = interactionKet01 + interactionKet10;
 
 gammaLeft = np.zeros((2,2));
 gammaLeft[0][0] = gamma;
+gammaLeft[1][1] = gamma;
 
 gammaRight = np.zeros((2,2));
+gammaRight[0][0] = gamma;
 gammaRight[1][1] = gamma;
+
 
 
 print >> sys.stderr, "Setting Green's function lambda's.\n";
@@ -84,8 +87,8 @@ singleParticleGreensFunctionKet01 = lambda epsilon: np.linalg.inv( np.linalg.inv
 singleParticleGreensFunctionKet10 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet10);
 singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet11);
 
-parser  = argparse.ArgumentParser(prog="Simple Plot",
-  description = "Filename for simple plot.")
+parser  = argparse.ArgumentParser(prog="Transport Plot",
+  description = "Filename for Transport Plot.")
 parser.add_argument(
     '-f',
     '--filename',
@@ -105,18 +108,24 @@ beta = data[:,1];
 n0 = data[:,2];
 n1 = data[:,3]; 
 
-for i in range(3):
+epsilon = np.linspace(-2*capacitive, 2*capacitive, 100);
+
+for i in range(len(n0)):
+	print >> sys.stderr, 'Working on beta=%.3f. Progress %d/%d' % (beta[i], i, len(n0));
 	m0 = n0[i];
 	m1 = n1[i];
-	mbGreensFunction = lambda epsilon: (1-m0)*(1-m1) * singleParticleGreensFunctionKet00(epsilon);
-	mbGreensFunction = lambda epsilon: mbGreensFunction(epsilon) + m0 * (1-m1) *singleParticleGreensFunctionKet01(epsilon);
-	mbGreensFunction = lambda epsilon: mbGreensFunction(epsilon) + m1 * (1-m0) *singleParticleGreensFunctionKet10(epsilon);
-	mbGreensFunction = lambda epsilon: mbGreensFunction(epsilon) + m0 * m1 *singleParticleGreensFunctionKet11(epsilon);
+	mbGreensFunction = lambda epsilon: (1-m0)*(1-m1) * singleParticleGreensFunctionKet00(epsilon) + m0 * (1-m1) *singleParticleGreensFunctionKet01(epsilon) + m1 * (1-m0) *singleParticleGreensFunctionKet10(epsilon) + m0 * m1 *singleParticleGreensFunctionKet11(epsilon);
 
-	epsilon = np.linspace(-2*capacitive, 2*capacitive, 100);
+	leftMatrix = lambda epsilon: np.dot(gammaLeft, mbGreensFunction(epsilon));
+	rightMatrix = lambda epsilon: np.dot(gammaLeft, mbGreensFunction(epsilon).conj());
 
-	print 
+	T = lambda epsilon: np.dot( leftMatrix(epsilon), rightMatrix(epsilon));
 
+
+	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilon]);
+
+	for j in range(len(epsilon)):
+		print '%.9e\t%.9e\t%.9e\t%.9e' % (betaFraction[i], beta[i], epsilon[j], transport[j]);
 #toc
 global_time_end = time.time ()
-print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
+print  >> sys.stderr, "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
