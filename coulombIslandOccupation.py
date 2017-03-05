@@ -35,7 +35,7 @@ alpha = 0.00;
 # Interaction strength
 capacitive = 0.300;
 # Zero-bias level. Slightly below zero to improve convergence.
-levels = -1e-9;
+levels = .1*capacitive;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4);
 # bias
@@ -51,7 +51,7 @@ doInv = 1;
 print >> sys.stderr, "Setting system matrices.\n";
 #system matrices
 hamiltonian = np.zeros((2,2));
-hamiltonian[0][0] = levels;
+hamiltonian[0][0] = -levels;
 hamiltonian[1][1] = levels;
 
 #actual interaction term
@@ -208,4 +208,4 @@ for betaFraction in betaArray:
 
 #toc
 global_time_end = time.time ()
-print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
+print >> sys.stderr, "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)

@@ -12,31 +12,27 @@ parser.add_argument(
     action='store',
     type = str,
     default = ''
-)   
+)    
 args    = parser.parse_args() 
 filename = args.filename
 file_handler = open( filename, "r" );
 
-data = np.genfromtxt(file_handler, skip_header=0, dtype=None, usecols=range(0,4));
+data = np.genfromtxt(file_handler, skip_header=0, dtype=None, usecols=range(0,3));
+
+print data.shape
 
 betaFraction = data[:,0];
 beta = data[:,1];
-n0 = data[:,2];
-n1 = data[:,3]; 
-
-horizontal = beta;
-
-horizontalLabel = 'beta [eV^{-1}]';
+conductance = data[:,2];
 
 horizontal = betaFraction;
 horizontalLabel = 'betaFraction [U]';
 
-plt.plot(horizontal, n0, 'ro', label='n0');
-plt.plot(horizontal, n1, 'g+', label='n1'); 
-plt.title('Inspecting self-consistent occupation results at capactive=%.3f [eV]' % 0.3);
+plt.plot(horizontal, conductance, 'ro', label='n0'); 
+plt.title('Inspecting self-consistent conductance results at capactive=%.3f [eV]' % 0.3);
 plt.legend();
 #plt.rc('text', usetex=True);
 plt.rc('font', family='serif');
 plt.xlabel(horizontalLabel);
-plt.ylabel('average occupation');
+plt.ylabel('conductance');
 plt.show();

@@ -123,9 +123,8 @@ for i in range(len(n0)):
 
 
 	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilon]);
-
-	for j in range(len(epsilon)):
-		print '%.9e\t%.9e\t%.9e\t%.9e' % (betaFraction[i], beta[i], epsilon[j], transport[j]);
+ 
+	print '%.9e\t%.9e\t%.9e' % (betaFraction[i], beta[i], np.sum(transport)/(8*capacitive));
 #toc
 global_time_end = time.time ()
 print  >> sys.stderr, "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
