@@ -24,7 +24,7 @@ print data.shape
 betaFraction = data[:,0];
 beta = data[:,1];
 conductance = data[:,2];
-
+ 
 horizontal = betaFraction;
 horizontalLabel = 'betaFraction [U]';
 
