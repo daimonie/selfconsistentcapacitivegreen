@@ -39,12 +39,12 @@ filename = args.filename
 
 file_handler = open( filename, "r" );
 
-data = np.genfromtxt(file_handler, dtype=None, usecols=range(0,cols)); #excluding the symtype col
+data = np.genfromtxt(file_handler, dtype=None, usecols=range(0,4)); #excluding the symtype col
 
 
 betaFraction = data[:,0];
 
-beta = data[:,1];
+beta = data[:,0];
 epsilon = data[:,2];
 transport = data[:,3]; 
 
@@ -55,25 +55,25 @@ lin_e = np.linspace(min(epsilon), max(epsilon))
 x, y = np.meshgrid(lin_b, lin_e)
 z = griddata(beta, epsilon, transport, lin_b, lin_e, interp='linear')
 
+z = np.log(z/2.)
 
 fig, ax = plt.subplots()
 
 
 cmap = plt.get_cmap('afmhot') 
 
-levels = MaxNLocator(nbins=100).tick_values(z.min(), z.max()) 
+levels = MaxNLocator(nbins=100).tick_values(-10, 0) 
 
 cf = ax.contourf(y, x, z, cmap=cmap, levels=levels)
 fig.colorbar(cf, ax=ax, shrink=0.9, pad=0.15)    
-
-plt.rc('text', usetex=True)
+ 
 plt.rc('font', family='serif')
 
-ax.set_axis_bgcolor('black'); 
+ax.set_facecolor('black'); 
 
-ax.set_ylabel( xlabel ,fontsize=30);
-ax.set_xlabel( ylabel ,fontsize=30); 
-plt.title( title ,fontsize=20); 
+ax.set_ylabel( "betaFraction [U]" ,fontsize=30);
+ax.set_xlabel( "epsilon" ,fontsize=30); 
+plt.title( "Transport contour versus inverse temperature and chemical potential" ,fontsize=20); 
 plt.gca().invert_xaxis(); 
 
 plt.show()  
