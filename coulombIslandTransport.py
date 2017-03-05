@@ -1,7 +1,88 @@
+# Numerical Python
 import numpy as np
-import matplotlib.pyplot as plt
+# Scientific Python
+import scipy as sp
+# SP.Interpolate 
+import scipy.interpolate as si
+# SP.Optimize
+from scipy.optimize import minimize
+# SP.Constants contains physical constants.
+from scipy.constants import physical_constants as pc
+# Easy access to nullspace calculation
+from sympy import Matrix
+from sympy import matrix2numpy
+# Mostly to have access to the STDError stream, allowing output past a pipe
+import sys  
+#some small functions I use
+sys.path.append('/home/daimonie/ssd/git/PythonUtils')
+from utils import *
 # Argument parsing
 import argparse as argparse    
+#supress warnings
+import warnings
+# Allows tic/toc on the file execution.
+import time
+global_time_start = time.time();
+
+#Feedback
+print >> sys.stderr, "Distribution for Coulomb Island.\nSetting parameters.\n";  
+# Units of the current.
+physicalCurrentUnit   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0];
+# Lead-Molecule coupling (symmetric)
+gamma = 0.010;
+# Stark effect strength
+alpha = 0.00;
+# Interaction strength
+capacitive = 0.300;
+# Zero-bias level. Slightly below zero to improve convergence.
+levels = -1e-9;
+# Integration interval for the self-consistent calculation.
+intervalW = np.linspace( -10.0, 10.0, 1e4);
+# bias
+bias = 0.0
+# Temperature (units U); number, min, max
+betaNumber = 250-179;
+betaMin = 7.151;
+betaMax = 10.0;
+betaArray = np.linspace(betaMin, betaMax, betaNumber);  
+
+doInv = 1; 
+###    
+print >> sys.stderr, "Setting system matrices.\n";
+#system matrices
+hamiltonian = np.zeros((2,2));
+hamiltonian[0][0] = levels;
+hamiltonian[1][1] = levels;
+
+#actual interaction term
+andersonInteraction = np.zeros((2,2));
+andersonInteraction[0][1] = capacitive;
+andersonInteraction[1][0] = capacitive;
+
+#interaction self energy
+interactionKet01 = np.zeros((2,2));
+interactionKet01[1][1] = andersonInteraction[0][1]; 
+
+interactionKet10 = np.zeros((2,2));
+interactionKet10[0][0] = andersonInteraction[1][0]; 
+
+interactionKet11 = interactionKet01 + interactionKet10;
+
+gammaLeft = np.zeros((2,2));
+gammaLeft[0][0] = gamma;
+
+gammaRight = np.zeros((2,2));
+gammaRight[1][1] = gamma;
+
+
+print >> sys.stderr, "Setting Green's function lambda's.\n";
+selfEnergy = 0.5j*(gammaLeft + gammaRight);
+# single-particle Green's Functions. The numbers denote the state, ket{n_1 n_2}.
+# G^{lambda+}
+singleParticleGreensFunctionKet00 = lambda epsilon: np.linalg.inv( np.eye( 2 ) * epsilon - hamiltonian + selfEnergy);
+singleParticleGreensFunctionKet01 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet01);
+singleParticleGreensFunctionKet10 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet10);
+singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet11);
 
 parser  = argparse.ArgumentParser(prog="Simple Plot",
   description = "Filename for simple plot.")
@@ -24,19 +105,18 @@ beta = data[:,1];
 n0 = data[:,2];
 n1 = data[:,3]; 
 
-horizontal = beta;
+for i in range(3):
+	m0 = n0[i];
+	m1 = n1[i];
+	mbGreensFunction = lambda epsilon: (1-m0)*(1-m1) * singleParticleGreensFunctionKet00(epsilon);
+	mbGreensFunction = lambda epsilon: mbGreensFunction(epsilon) + m0 * (1-m1) *singleParticleGreensFunctionKet01(epsilon);
+	mbGreensFunction = lambda epsilon: mbGreensFunction(epsilon) + m1 * (1-m0) *singleParticleGreensFunctionKet10(epsilon);
+	mbGreensFunction = lambda epsilon: mbGreensFunction(epsilon) + m0 * m1 *singleParticleGreensFunctionKet11(epsilon);
 
-horizontalLabel = 'beta [eV^{-1}]';
+	epsilon = np.linspace(-2*capacitive, 2*capacitive, 100);
 
-horizontal = betaFraction;
-horizontalLabel = 'betaFraction [U]';
+	print 
 
-plt.plot(horizontal, n0, 'ro', label='n0');
-plt.plot(horizontal, n1, 'g+', label='n1'); 
-plt.title('Inspecting self-consistent occupation results at capactive=%.3f [eV]' % 0.3);
-plt.legend();
-#plt.rc('text', usetex=True);
-plt.rc('font', family='serif');
-plt.xlabel(horizontalLabel);
-plt.ylabel('average occupation');
-plt.show();
+#toc
+global_time_end = time.time ()
+print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)

@@ -70,8 +70,10 @@ interactionKet11 = interactionKet01 + interactionKet10;
 
 gammaLeft = np.zeros((2,2));
 gammaLeft[0][0] = gamma;
+gammaLeft[1][1] = gamma;
 
 gammaRight = np.zeros((2,2));
+gammaRight[0][0] = gamma;
 gammaRight[1][1] = gamma;
 
 
@@ -203,3 +205,7 @@ for betaFraction in betaArray:
 			raise Exception("Occupation number n[%d]=%.3f is unphysical." % (i, n[i]));
 
 	print "%.3e\t%.3e\t%.3e\t%.3e\t" % (betaFraction, beta, n[0], n[1]);
+
+#toc
+global_time_end = time.time ()
+print "\n Time spent %.6f seconds. \n " % (global_time_end - global_time_start)
