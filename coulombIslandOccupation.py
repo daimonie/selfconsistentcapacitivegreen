@@ -41,12 +41,10 @@ intervalW = np.linspace( -10.0, 10.0, 1e4);
 # bias
 bias = 0.0
 # Temperature (units U); number, min, max
-betaNumber = 25;
-betaMin = 1e-2 ;
-betaMax = 2.0;
-betaArray = np.linspace(betaMin, betaMax, betaNumber); 
-
-betaArray = np.array( [1e-3/capacitive] );
+betaNumber = 250-179;
+betaMin = 7.151;
+betaMax = 10.0;
+betaArray = np.linspace(betaMin, betaMax, betaNumber);  
 
 doInv = 1; 
 ###    
@@ -91,8 +89,10 @@ singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv
 betaIteration = 0;
 for betaFraction in betaArray:
 	beta = betaFraction*capacitive;
+
 	if doInv:
 		beta = (beta)**(-1.);
+
 	print >> sys.stderr, "Calculation for beta=%.3e (%.3e U). Progress: %d/%d ." % (beta, beta/capacitive, betaIteration, betaNumber)
 	betaIteration += 1
 	# Fermi-Dirac distribution
@@ -179,8 +179,7 @@ for betaFraction in betaArray:
 	for nullVector in nullSpace:
 		nullSpaceList.append(matrix2numpy(nullVector)[:, 0]);
  
-		nullSpaceList[i] /= np.sum( nullSpaceList[i]);
-		print np.dot( kappaMatrix, nullSpaceList[-1]);
+		nullSpaceList[i] /= np.sum( nullSpaceList[i]); 
 
 		i += 1;
 
@@ -195,7 +194,7 @@ for betaFraction in betaArray:
 	
 	n = np.dot( kappaMatrix, nullSpaceList[0]);
 
-	print >> sys.stderr, n;
+	print >> sys.stderr, "Found n_0=%.9f, n_1=%.9f" % (n[0], n[1]);
 
 	for i in range(2):
 		if n[i] >= 0 and n[i] <= 1:
@@ -203,4 +202,4 @@ for betaFraction in betaArray:
 		else:
 			raise Exception("Occupation number n[%d]=%.3f is unphysical." % (i, n[i]));
 
-	raise Exception("Abort now.");
+	print "%.3e\t%.3e\t%.3e\t%.3e\t" % (betaFraction, beta, n[0], n[1]);
