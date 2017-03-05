@@ -56,11 +56,17 @@ hamiltonian = np.zeros((2,2));
 hamiltonian[0][0] = levels;
 hamiltonian[1][1] = levels;
 
+#actual interaction term
+andersonInteraction = np.zeros((2,2));
+andersonInteraction[0][1] = capacitive;
+andersonInteraction[1][0] = capacitive;
+
+#interaction self energy
 interactionKet01 = np.zeros((2,2));
-interactionKet01[1][1] = capacitive; 
+interactionKet01[1][1] = andersonInteraction[0][1]; 
 
 interactionKet10 = np.zeros((2,2));
-interactionKet10[0][0] = capacitive; 
+interactionKet10[0][0] = andersonInteraction[1][0]; 
 
 interactionKet11 = interactionKet01 + interactionKet10;
 
@@ -155,45 +161,46 @@ for betaFraction in betaArray:
 
 	# w for n_1 and kappa=11
 	omegaMatrix[0][3] = integralLesserKet11[0][0];
-	omegaMatrix[1][3] = integralLesserKet11[1][1];
-
-	# Solve kappaMatrix P = omegaMatrix P
-	initialGuess = np.zeros((4));
-	initialGuess[0] = boltzmann(0); #00 
-	initialGuess[1] = boltzmann(levels); #01 
-	initialGuess[2] = boltzmann(levels); #10 
-	initialGuess[3] = boltzmann(levels*2 + capacitive); #11 
-	selfConsistentProbabilityVector = initialGuess
-
-	initialGuess = initialGuess / sum(initialGuess);
+	omegaMatrix[1][3] = integralLesserKet11[1][1]; 
 	#self-consistent equation f(x) = x
-	# error is E(x) = | f(x) - x |^2
-	numberError = lambda p: np.sum(np.abs( np.dot( omegaMatrix, p ) - np.dot( kappaMatrix, p ))**2)
-
-	useMinimisation = 0;
-
+	 
 	print >> sys.stderr, "kappaMatrix:";
 	printMatrix(kappaMatrix);
 
 	print >> sys.stderr, "omegaMatrix:"; 
 	printMatrix(omegaMatrix);
 
-	densityTransform = Matrix(-(omegaMatrix - kappaMatrix));
+	densityTransform = Matrix(omegaMatrix - kappaMatrix);
 	nullSpace = densityTransform.nullspace();
 	nullSpaceList = [];
 
 	i = 0;
+	#Remember, the vectors P are chances; the normalisation we seek is sum P = 1
 	for nullVector in nullSpace:
 		nullSpaceList.append(matrix2numpy(nullVector)[:, 0]);
  
-		nullSpaceList[i] /= np.sum( nullSpaceList[i]); 
+		nullSpaceList[i] /= np.sum( nullSpaceList[i]);
 		print np.dot( kappaMatrix, nullSpaceList[-1]);
 
 		i += 1;
 
 	nullSpaceList = np.array(nullSpaceList);
+	nullSpaceShape = nullSpaceList.shape; 
+
+	if nullSpaceShape[0] == 0:
+		raise Exception("Abort: The single-particle occupation expectations do not converge.");
 
 	print >> sys.stderr, "nullSpace:";
-	printMatrix( nullSpaceList);
+	printMatrix(nullSpaceList); 
+	
+	n = np.dot( kappaMatrix, nullSpaceList[0]);
+
+	print >> sys.stderr, n;
+
+	for i in range(2):
+		if n[i] >= 0 and n[i] <= 1:
+			print >> sys.stderr, "Occupation number n[%d] is nonzero and bounded by unity." % i;
+		else:
+			raise Exception("Occupation number n[%d]=%.3f is unphysical." % (i, n[i]));
 
 	raise Exception("Abort now.");
