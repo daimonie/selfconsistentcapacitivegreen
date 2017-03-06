@@ -64,14 +64,14 @@ cmap = plt.get_cmap('afmhot')
 
 levels = MaxNLocator(nbins=100).tick_values(-10, 0) 
 
-cf = ax.contourf(y, x, z, cmap=cmap, levels=levels)
+cf = ax.contourf(y, np.log(x), z, cmap=cmap, levels=levels)
 fig.colorbar(cf, ax=ax, shrink=0.9, pad=0.15)    
  
 plt.rc('font', family='serif')
 
 ax.set_facecolor('black'); 
 
-ax.set_ylabel( "betaFraction [U]" ,fontsize=30);
+ax.set_ylabel( "log(temperature [U])" ,fontsize=30);
 ax.set_xlabel( "epsilon" ,fontsize=30); 
 plt.title( "Transport contour versus inverse temperature and chemical potential" ,fontsize=20); 
 plt.gca().invert_xaxis(); 

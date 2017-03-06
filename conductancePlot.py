@@ -28,11 +28,12 @@ conductance = data[:,2];
 horizontal = betaFraction;
 horizontalLabel = 'betaFraction [U]';
 
-plt.plot(horizontal, conductance, 'ro', label='n0'); 
+plt.semilogx(horizontal, conductance, 'ro', label='n0'); 
 plt.title('Inspecting self-consistent conductance results at capactive=%.3f [eV]' % 0.3);
 plt.legend();
 #plt.rc('text', usetex=True);
 plt.rc('font', family='serif');
 plt.xlabel(horizontalLabel);
 plt.ylabel('conductance');
+plt.xlim( 1e-3, 10);
 plt.show();

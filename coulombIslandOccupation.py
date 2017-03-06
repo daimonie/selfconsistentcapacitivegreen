@@ -93,10 +93,11 @@ betaIteration = 0;
 for betaFraction in betaArray:
 	beta = betaFraction*capacitive;
 
-	if doInv:
-		beta = (beta)**(-1.);
 
 	print >> sys.stderr, "Calculation for beta=%.3e (%.3e U). Progress: %d/%d ." % (beta, beta/capacitive, betaIteration, betaNumber)
+	
+	if doInv:
+		beta = (beta)**(-1.);
 	betaIteration += 1
 	# Fermi-Dirac distribution
 

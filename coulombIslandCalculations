@@ -5,5 +5,7 @@ rm *.txt;
 
 python coulombIslandOccupation.py >> "data.txt";
 python coulombIslandTransport.py -f "data.txt" > "transport.txt";
+python coulombIslandConductance.py -f "data.txt" > "conductance.txt";
+python coulombIslandConductanceMax.py -f "data.txt" > "max.txt";
 
 echo "Completed Coulomb Island calculations.";

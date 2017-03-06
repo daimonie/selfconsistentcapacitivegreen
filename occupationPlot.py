@@ -33,8 +33,9 @@ horizontalLabel = 'beta [eV^{-1}]';
 horizontal = betaFraction;
 horizontalLabel = 'betaFraction [U]';
 
-plt.plot(horizontal, n0, 'ro', label='n0');
-plt.plot(horizontal, n1, 'g+', label='n1'); 
+plt.semilogx(horizontal, n0, 'ro', label='n0');
+plt.semilogx(horizontal, n1, 'g+', label='n1'); 
+plt.semilogx(horizontal, n0+n1, 'gd', label='spin'); 
 plt.title('Inspecting self-consistent occupation results at capactive=%.3f [eV]' % 0.3);
 plt.legend();
 #plt.rc('text', usetex=True);
