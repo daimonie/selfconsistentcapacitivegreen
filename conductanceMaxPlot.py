@@ -28,7 +28,7 @@ conductance = data[:,2];
 horizontal = betaFraction;
 horizontalLabel = 'betaFraction [U]';
 
-plt.semilogx(horizontal, conductance, 'ro', label='n0'); 
+plt.semilogx(horizontal, conductance, 'ro', label='max conductance'); 
 plt.title('Inspecting self-consistent conductance maximum results at capactive=%.3f [eV]' % 0.3);
 plt.legend();
 #plt.rc('text', usetex=True);
