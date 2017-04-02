@@ -14,7 +14,12 @@ from sympy import matrix2numpy
 # Mostly to have access to the STDError stream, allowing output past a pipe
 import sys  
 #some small functions I use
-sys.path.append('/home/daimonie/ssd/git/PythonUtils')
+from sys import platform
+if platform == "linux":
+	sys.path.append('/home/daimonie/ssd/git/PythonUtils')
+else:
+	sys.path.append('K:\windows\git\PythonUtils')
+
 from utils import *
 # Argument parsing
 import argparse as argparse    

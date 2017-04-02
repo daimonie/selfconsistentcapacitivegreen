@@ -8,3 +8,5 @@ You can use
 	python >> import pip
 	python >> print pip.pep425tags.get_supported()
 to output the support version. Currently, it is c27-c27m-win32 on my home desktop.
+
+Note that the windows version becomes very slow if the powershell isn't kept active?
