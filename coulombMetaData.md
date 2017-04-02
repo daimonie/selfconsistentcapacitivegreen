@@ -12,7 +12,9 @@ In principle, the full calculations are performed by 'coulombIslandCalculations.
 	
 	This calculates T(E) at the different temperatures.
 
-	python contourPlot.py -f "transport.txt" allows for plotting the (beta, epsilon, T(e,beta)) map.
+	python contourPlot.py -f "transport.txt" allows for plotting the (beta, epsilon, T(e,beta)) 
+	contour map.
+	python transportPlot.py -f "transport.txt" allows for plotting a few of the lines.
 
 3. python coulombIslandConductance.py -f "data.txt" >> "conductance.txt"
 

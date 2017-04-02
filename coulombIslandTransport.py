@@ -108,7 +108,7 @@ beta = data[:,1];
 n0 = data[:,2];
 n1 = data[:,3]; 
 
-epsilon = np.linspace(-4*capacitive, 4*capacitive, 1000);
+epsilon = np.linspace(-capacitive, 2.5*capacitive, 2500);
 
 for i in range(len(n0)):
 	print >> sys.stderr, 'Working on beta=%.3f. Progress %d/%d' % (beta[i], i, len(n0));
