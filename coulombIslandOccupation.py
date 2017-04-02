@@ -18,7 +18,7 @@ from sys import platform
 if platform == "linux":
 	sys.path.append('/home/daimonie/ssd/git/PythonUtils')
 else:
-	sys.path.append('/home/daimonie/ssd/git/PythonUtils')
+	sys.path.append('K:\windows\git\PythonUtils')
 
 from utils import *
 # Argument parsing
