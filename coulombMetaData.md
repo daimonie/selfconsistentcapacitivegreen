@@ -4,7 +4,7 @@ In principle, the full calculations are performed by 'coulombIslandCalculations.
 
 1. python coulombIslandOccupation.py >> data.txt
 	
-	This calculates the occupational probabilities for the coulomb Island at different temperatures.
+	This calculates the occupational probabilities for the coulomb Isalnd at different temperatures.
 
 	python occupationPlot.py -f "data.txt"  allows for plotting the figure.
 
@@ -32,3 +32,8 @@ In principle, the full calculations are performed by 'coulombIslandCalculations.
 	Calculates the average conductance in -1e-2 U < eps < 1e-2 U.  
 
 	python conductanceRoundPlot.py -f "round.txt" allows for inspecting the maximum conductance versus temperature.
+5. python coulombIslandConductanceFollow.py -f "data.txt" -n 0>> "follow0.txt"
+	
+	Calculates the conductance around one of the eigen values.
+
+	python conductanceFollowPlot.py -f "follow0.txt" allows for inspecting the maximum conductance around an eigenvalue versus temperature.
