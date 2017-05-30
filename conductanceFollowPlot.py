@@ -34,6 +34,6 @@ plt.legend();
 #plt.rc('text', usetex=True);
 plt.rc('font', family='serif');
 plt.xlabel(horizontalLabel);
-plt.ylabel('conductance maximum');
+plt.ylabel('conductance maximum  [2e^2/h]'); 
 plt.xlim( 1e-3, 10);
 plt.show();

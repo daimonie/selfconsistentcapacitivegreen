@@ -74,6 +74,6 @@ ax.set_facecolor('black');
 ax.set_ylabel( "log(temperature [U])" ,fontsize=30);
 ax.set_xlabel( "epsilon" ,fontsize=30); 
 plt.title( "Transport contour versus inverse temperature and chemical potential" ,fontsize=20); 
-plt.gca().invert_xaxis(); 
+plt.gca().invert_xaxis();  
 
 plt.show()  

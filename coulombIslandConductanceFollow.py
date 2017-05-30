@@ -147,7 +147,7 @@ for i in range(len(n0)):
 	mbGreensFunction = lambda epsilon: (1-m0)*(1-m1) * singleParticleGreensFunctionKet00(epsilon) + m0 * (1-m1) *singleParticleGreensFunctionKet01(epsilon) + m1 * (1-m0) *singleParticleGreensFunctionKet10(epsilon) + m0 * m1 *singleParticleGreensFunctionKet11(epsilon);
 
 	leftMatrix = lambda epsilon: np.dot(gammaLeft, mbGreensFunction(epsilon));
-	rightMatrix = lambda epsilon: np.dot(gammaLeft, mbGreensFunction(epsilon).conj());
+	rightMatrix = lambda epsilon: np.dot(gammaRight, mbGreensFunction(epsilon).conj());
 
 	T = lambda epsilon: np.dot( leftMatrix(epsilon), rightMatrix(epsilon));
 	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilon]);

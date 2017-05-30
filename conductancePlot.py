@@ -18,8 +18,7 @@ filename = args.filename
 file_handler = open( filename, "r" );
 
 data = np.genfromtxt(file_handler, skip_header=0, dtype=None, usecols=range(0,3));
-
-print data.shape
+ 
 
 betaFraction = data[:,0];
 beta = data[:,1];
@@ -34,6 +33,6 @@ plt.legend();
 #plt.rc('text', usetex=True);
 plt.rc('font', family='serif');
 plt.xlabel(horizontalLabel);
-plt.ylabel('conductance');
+plt.ylabel('conductance [2e^2/h]');
 plt.xlim( 1e-3, 10);
 plt.show();

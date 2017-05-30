@@ -15,7 +15,7 @@ from sympy import matrix2numpy
 import sys  
 #some small functions I use, that are in a different repository
 from sys import platform
-if platform == "linux":
+if platform == "linux2":
 	sys.path.append('/home/daimonie/ssd/git/PythonUtils')
 else:
 	sys.path.append('K:\windows\git\PythonUtils')
