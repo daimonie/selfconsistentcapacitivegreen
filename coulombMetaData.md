@@ -37,3 +37,11 @@ In principle, the full calculations are performed by 'coulombIslandCalculations.
 	Calculates the conductance around one of the eigen values.
 
 	python conductanceFollowPlot.py -f "follow0.txt" allows for inspecting the maximum conductance around an eigenvalue versus temperature.
+6. python coulombIslandCurrent.py >> current.txt
+	
+	Calculates the current through the dot. This is very slow, as the occupation numbers
+	have to be calculated for every bias voltage. Don't space it too closely!
+
+	python currentPlot.py -f "current.txt" to inspect current results.
+conductance unit
+plt.ylabel('conductance maximum  [2e^2/h]'); 

@@ -45,15 +45,15 @@ levels = .1*capacitive;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4); 
 # Temperature (units U); number, min, max
-betaFraction = 0.1;
+betaFraction = 1e-4;
 
 #Needed for Riemannian sums
 differentialEpsilon = 0.01;
 
 # Bias array
-biasMinimum = 0;
+biasMinimum = -1;
 biasMaximum = 1;
-biasNumber = 1000;
+biasNumber = 100;
 
 biasArray = np.linspace(biasMinimum, biasMaximum, biasNumber);
 
@@ -61,7 +61,7 @@ doInv = 1;
 ### loop over each bias voltage
 biasIteration = 1;
 for bias in biasArray:
-	print >> sys.stderr, "Setting system matrices for bias=%.3f, progress %d/%d.\n" % (bias, biasIteration, biasNumber);
+	print >> sys.stderr, "Calculating current for bias=%.3f, progress %d/%d.\n" % (bias, biasIteration, biasNumber);
 	biasIteration += 1;
 	#system matrices
 	hamiltonian = np.zeros((2,2));
@@ -202,6 +202,9 @@ for bias in biasArray:
 
 	m0 = n[0];
 	m1 = n[1];
+
+	m0 = 0;
+	m1 = 0;
 	mbGreensFunction = lambda epsilon: (1-m0)*(1-m1) * singleParticleGreensFunctionKet00(epsilon) + m0 * (1-m1) *singleParticleGreensFunctionKet01(epsilon) + m1 * (1-m0) *singleParticleGreensFunctionKet10(epsilon) + m0 * m1 *singleParticleGreensFunctionKet11(epsilon);
 
 	leftMatrix = lambda epsilon: np.dot(gammaLeft, mbGreensFunction(epsilon));
@@ -209,14 +212,15 @@ for bias in biasArray:
 
 	T = lambda epsilon: np.dot( leftMatrix(epsilon), rightMatrix(epsilon));
 
-	epsilonArray = np.arange(-bias/2, bias, differentialEpsilon);
+	epsilonArray = np.arange(-bias/2, bias/2, differentialEpsilon);
 
 	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilonArray]);
  
 	current = np.trapz(transport, epsilonArray);
 	current = -np.real(complex(current)); #current is -2e/hbar Int(T(e))
 	
-	print '%.9e\t%.9e\t%.9e' % (bias, current, betaFraction);
+	print '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaFraction, m0, m1);
+	print >> sys.stderr, '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaFraction, m0, m1);
 
 	#print >> sys.stderr, '%.3e \t\t %.3e' % (bias, current);
 
