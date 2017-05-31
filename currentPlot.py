@@ -28,8 +28,8 @@ n1 = data[:,4];
  
 #plt.rc('text', usetex=True);
 plt.rc('font', family='serif');
-plt.title('Inspecting current results at beta=%.3f [U]' % beta);
 plt.subplot(2,1,1);
+plt.title('Inspecting current results at beta=%.3f [U]' % beta);
 plt.plot(bias, current, 'r-', label='current'); 
 plt.ylabel('Current [e/hbar/pi]');
 plt.xlim( -1, 1);

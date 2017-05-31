@@ -45,7 +45,7 @@ levels = .1*capacitive;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4); 
 # Temperature (units U); number, min, max
-betaFraction = 1e-4;
+betaFraction = 1e3;
 
 #Needed for Riemannian sums
 differentialEpsilon = 0.01;
@@ -202,9 +202,7 @@ for bias in biasArray:
 
 	m0 = n[0];
 	m1 = n[1];
-
-	m0 = 0;
-	m1 = 0;
+ 
 	mbGreensFunction = lambda epsilon: (1-m0)*(1-m1) * singleParticleGreensFunctionKet00(epsilon) + m0 * (1-m1) *singleParticleGreensFunctionKet01(epsilon) + m1 * (1-m0) *singleParticleGreensFunctionKet10(epsilon) + m0 * m1 *singleParticleGreensFunctionKet11(epsilon);
 
 	leftMatrix = lambda epsilon: np.dot(gammaLeft, mbGreensFunction(epsilon));
