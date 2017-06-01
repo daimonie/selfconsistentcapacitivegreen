@@ -41,6 +41,7 @@ parser.add_argument(
     default = 1e-3
 )    
 args    = parser.parse_args() ;
+# Temperature (units U); number, min, max 
 betaFraction = args.beta;
 #Feedback
 print >> sys.stderr, "Distribution for Coulomb Island.\nSetting parameters, beta=%.3e.\n" % betaFraction;  
@@ -56,8 +57,6 @@ capacitive = 0.300;
 levels = .1*capacitive;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4); 
-# Temperature (units U); number, min, max
-betaFraction = 10;
 
 #Needed for Riemannian sums
 differentialEpsilon = 0.01;
