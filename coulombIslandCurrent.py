@@ -30,8 +30,20 @@ import warnings
 import time
 global_time_start = time.time();
 
+parser  = argparse.ArgumentParser(prog="Coulomb Island Current",
+  description = "Temperature required.")
+parser.add_argument(
+    '-b',
+    '--beta',
+    help='Beta in units [U]',
+    action='store',
+    type = float,
+    default = 1e-3
+)    
+args    = parser.parse_args() ;
+betaFraction = args.beta;
 #Feedback
-print >> sys.stderr, "Distribution for Coulomb Island.\nSetting parameters.\n";  
+print >> sys.stderr, "Distribution for Coulomb Island.\nSetting parameters, beta=%.3e.\n" % betaFraction;  
 # Units of the current.
 physicalCurrentUnit   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0];
 # Lead-Molecule coupling (symmetric)
@@ -45,7 +57,7 @@ levels = .1*capacitive;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4); 
 # Temperature (units U); number, min, max
-betaFraction = 1e3;
+betaFraction = 10;
 
 #Needed for Riemannian sums
 differentialEpsilon = 0.01;
@@ -211,6 +223,8 @@ for bias in biasArray:
 	T = lambda epsilon: np.dot( leftMatrix(epsilon), rightMatrix(epsilon));
 
 	epsilonArray = np.arange(-bias/2, bias/2, differentialEpsilon);
+	if bias < 0:
+		epsilonArray = np.arange(bias/2, -bias/2, differentialEpsilon);
 
 	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilonArray]);
  
