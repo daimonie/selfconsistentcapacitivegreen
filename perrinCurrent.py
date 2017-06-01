@@ -44,9 +44,9 @@ args    = parser.parse_args() ;
 # Temperature (units U); number, min, max 
 betaFraction = args.beta;
 #Feedback
-print >> sys.stderr, "Distribution for Coulomb Island.\nSetting parameters, beta=%.3e.\n" % betaFraction;  
+print >> sys.stderr, "Distribution for Perrin Molecule.\nSetting parameters, beta = %.3e,\n" % betaFraction;  
 # Units of the current.
-physicalCurrentUnit   = pc["elementary charge"][0] / pc["Planck constant"][0] * pc["electron volt"][0];
+physicalCurrentUnit   = 2.0 * pc["elementary charge"][0]**2.0 / pc["Planck constant"][0];
 # Lead-Molecule coupling (symmetric)
 gamma = 0.0102;
 # Stark effect strength
@@ -70,6 +70,9 @@ biasNumber = 100;
 
 biasArray = np.linspace(biasMinimum, biasMaximum, biasNumber);
 
+print >> sys.stderr, "\tlevels = %.3e, tau = %.3e, \n" % (levels, tau);
+print >> sys.stderr, "\tgamma = %.3e, capacitive = %.3e, \n" % (gamma, capacitive);
+print >> sys.stderr, "Recall unit of current is %.3e.\n" % physicalCurrentUnit;
 doInv = 1; 
 ### loop over each bias voltage
 biasIteration = 1;
@@ -80,8 +83,8 @@ for bias in biasArray:
 	hamiltonian = np.zeros((2,2));
 	hamiltonian[0][0] = levels + 0.5 * alpha * bias;
 	hamiltonian[1][1] = levels - 0.5 * alpha * bias;
-	hamiltonian[0][1] = tau;
-	hamiltonian[1][0] = tau;
+	hamiltonian[0][1] = -tau;
+	hamiltonian[1][0] = -tau;
 
 	#actual interaction term
 	andersonInteraction = np.zeros((2,2));
@@ -228,7 +231,8 @@ for bias in biasArray:
 	epsilonArray = np.arange(-bias/2, bias/2, differentialEpsilon);
 	if bias < 0:
 		epsilonArray = np.arange(bias/2, -bias/2, differentialEpsilon);
-
+		epsilonArray = np.flip(epsilonArray);
+		
 	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilonArray]);
  
 	current = np.trapz(transport, epsilonArray);

@@ -8,7 +8,7 @@ def read_experiment_data( filename ):
     exp_bias = data[:,0]
     exp_current = data[:,1] 
     
-    truebias = np.linspace(-0.2, 0.2, int(exp_bias.shape[0]/2))
+    truebias = np.linspace(-.45, .45, int(exp_bias.shape[0]/2))
     
     truecurrent = si.griddata(exp_bias, exp_current, truebias, method='nearest')
     file_handler.close()
@@ -54,4 +54,25 @@ def calculate_error( param_bias, param_current, param_exp ):
         return scaler, error_func, error_func * scaler
     else:
         raise Exception("Calculate Error: Arguments should have the same shape.")
-     
+def readExperiment():
+    #read experimental data 
+    separation_array = range(650, 670)        
+    data_bias = np.zeros(( len(separation_array), 404))
+    data_current = np.zeros(( len(separation_array), 404))
+
+    i = 0          
+    for sep in separation_array:
+        if sep != 645:
+            file = "exp_data/IV130328_7_%d.dat" % sep
+            #print "Reading [%s]" % file
+            bias, current = read_experiment(file) 
+                    
+            data_bias[i]    = bias
+            data_current[i] = current
+            
+            i += 1
+            
+    experimentalBias    = data_bias.mean(axis=0)
+    experimentalCurrent = data_current.mean(axis=0)
+    ###     
+    return experimentalBias, experimentalCurrent;

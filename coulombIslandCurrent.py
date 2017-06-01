@@ -224,6 +224,7 @@ for bias in biasArray:
 	epsilonArray = np.arange(-bias/2, bias/2, differentialEpsilon);
 	if bias < 0:
 		epsilonArray = np.arange(bias/2, -bias/2, differentialEpsilon);
+		epsilonArray = np.flip(epsilonArray);
 
 	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilonArray]);
  
