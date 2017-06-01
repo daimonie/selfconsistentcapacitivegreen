@@ -223,14 +223,16 @@ for bias in biasArray:
 
 	epsilonArray = np.arange(-bias/2, bias/2, differentialEpsilon);
 	if bias < 0:
-		epsilonArray = np.arange(bias/2, -bias/2, differentialEpsilon);
-		epsilonArray = np.flip(epsilonArray);
+		epsilonArray = np.arange(bias/2, -bias/2, differentialEpsilon); 
 
 	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilonArray]);
  
 	current = np.trapz(transport, epsilonArray);
 	current = -np.real(complex(current)); #current is -2e/hbar Int(T(e))
 	
+	if bias < 0:
+		current *= -1.0;
+		
 	print '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaFraction, m0, m1);
 	print >> sys.stderr, '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaFraction, m0, m1);
 
