@@ -56,7 +56,7 @@ tau = 0.0241;
 # Interaction strength
 capacitive = 0.300;
 # Zero-bias level.  
-levels = -1e-3;
+levels = 0;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4); 
 
@@ -116,115 +116,121 @@ for bias in biasArray:
 	singleParticleGreensFunctionKet10 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet10);
 	singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet11);
 
-
 	# inverse temperature 
 	beta = betaFraction*capacitive;
 	 
 	if doInv:
 		beta = (beta)**(-1.); 
+
 	# Fermi-Dirac distribution
 
 	boltzmann = lambda epsilon: np.exp(-beta*epsilon);
 	fd = lambda epsilon: 1.0 / (1.0+np.exp(-beta*epsilon)); 
+	occupancy = lambda epsilon: 0.5 * (fd(epsilon - bias/2.)+ fd(epsilon + bias/2.));
+
+
+	#built in as a control switch
+	m0 = 0;
+	m1 = 0;
 
 
 
-	# Cached Integrals. Adding 0j makes sure that the datatype is complex. Otherwise, it casts to real later.
-	integralLesserKet00 = np.zeros((2,2)) +0j;
-	integralLesserKet01 = np.zeros((2,2)) +0j;
-	integralLesserKet10 = np.zeros((2,2)) +0j;
-	integralLesserKet11 = np.zeros((2,2)) +0j;
+	if 1==0:
+		# Cached Integrals. Adding 0j makes sure that the datatype is complex. Otherwise, it casts to real later.
+		integralLesserKet00 = np.zeros((2,2)) +0j;
+		integralLesserKet01 = np.zeros((2,2)) +0j;
+		integralLesserKet10 = np.zeros((2,2)) +0j;
+		integralLesserKet11 = np.zeros((2,2)) +0j;
 
-	# Conversion for integral over W in the self-consistent equation
-	# NB: sum Gamma_alpha = gamma I
-	factorW = 1./(2.*np.pi)*gamma +0j ; 
-	# Actual integration
-	for i in range(2):
+		# Conversion for integral over W in the self-consistent equation
+		# NB: sum Gamma_alpha = gamma I
+		factorW = 1./(2.*np.pi)*gamma +0j ; 
+		# Actual integration
+		for i in range(2):
 
-		with warnings.catch_warnings():
-			warnings.simplefilter("ignore");
+			with warnings.catch_warnings():
+				warnings.simplefilter("ignore");
 
-			occupancy = lambda epsilon: 0.5 * (fd(epsilon - bias/2.)+ fd(epsilon + bias/2.));
 
-			integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+				integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+				integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+				integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
+				integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(0, i))**2 for epsilon in intervalW], intervalW)
 
-			integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
-			integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+				integralLesserKet00[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet00(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+				integralLesserKet01[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet01(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+				integralLesserKet10[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet10(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+				integralLesserKet11[i][i] += factorW * np.trapz( [occupancy(epsilon)*np.abs(singleParticleGreensFunctionKet11(epsilon).item(i, 1))**2 for epsilon in intervalW], intervalW)
+				#
 			#
 		#
-	#
-	integralLesserKet00 = np.real(integralLesserKet00);
-	integralLesserKet01 = np.real(integralLesserKet01);
-	integralLesserKet10 = np.real(integralLesserKet10);
-	integralLesserKet11 = np.real(integralLesserKet11); 
-	#K matrix
-	kappaMatrix = np.zeros((2,4)) +0j;
-	kappaMatrix[0][1] = 1;
-	kappaMatrix[0][3] = 1;
-	kappaMatrix[1][2] = 1;
-	kappaMatrix[1][3] = 1;
+		integralLesserKet00 = np.real(integralLesserKet00);
+		integralLesserKet01 = np.real(integralLesserKet01);
+		integralLesserKet10 = np.real(integralLesserKet10);
+		integralLesserKet11 = np.real(integralLesserKet11); 
+		#K matrix
+		kappaMatrix = np.zeros((2,4)) +0j;
+		kappaMatrix[0][1] = 1;
+		kappaMatrix[0][3] = 1;
+		kappaMatrix[1][2] = 1;
+		kappaMatrix[1][3] = 1;
 
-	#W matrix
-	omegaMatrix = np.zeros((2,4)) +0j;
+		#W matrix
+		omegaMatrix = np.zeros((2,4)) +0j;
 
-	# w for n_1 and kappa=00
-	omegaMatrix[0][0] = integralLesserKet01[0][0] + integralLesserKet11[0][0];
-	omegaMatrix[1][0] = integralLesserKet10[1][1] + integralLesserKet11[1][1];
+		# w for n_1 and kappa=00
+		omegaMatrix[0][0] = integralLesserKet01[0][0] + integralLesserKet11[0][0];
+		omegaMatrix[1][0] = integralLesserKet10[1][1] + integralLesserKet11[1][1];
 
-	# w for n_1 and kappa=01
-	omegaMatrix[0][1] = integralLesserKet01[0][0] + integralLesserKet11[0][0];
-	omegaMatrix[1][1] = integralLesserKet11[1][1];
+		# w for n_1 and kappa=01
+		omegaMatrix[0][1] = integralLesserKet01[0][0] + integralLesserKet11[0][0];
+		omegaMatrix[1][1] = integralLesserKet11[1][1];
 
-	# w for n_1 and kappa=10
-	omegaMatrix[0][2] = integralLesserKet11[0][0];
-	omegaMatrix[1][2] = integralLesserKet10[1][1] + integralLesserKet11[1][1];
+		# w for n_1 and kappa=10
+		omegaMatrix[0][2] = integralLesserKet11[0][0];
+		omegaMatrix[1][2] = integralLesserKet10[1][1] + integralLesserKet11[1][1];
 
-	# w for n_1 and kappa=11
-	omegaMatrix[0][3] = integralLesserKet11[0][0];
-	omegaMatrix[1][3] = integralLesserKet11[1][1];  
+		# w for n_1 and kappa=11
+		omegaMatrix[0][3] = integralLesserKet11[0][0];
+		omegaMatrix[1][3] = integralLesserKet11[1][1];  
 
-	densityTransform = Matrix(omegaMatrix - kappaMatrix);
-	nullSpace = densityTransform.nullspace();
-	nullSpaceList = [];
+		densityTransform = Matrix(omegaMatrix - kappaMatrix);
+		nullSpace = densityTransform.nullspace();
+		nullSpaceList = [];
 
-	i = 0;
-	#Remember, the vectors P are chances; the normalisation we seek is sum P = 1
-	for nullVector in nullSpace:
-		nullSpaceList.append(matrix2numpy(nullVector)[:, 0]);
+		i = 0;
+		#Remember, the vectors P are chances; the normalisation we seek is sum P = 1
+		for nullVector in nullSpace:
+			nullSpaceList.append(matrix2numpy(nullVector)[:, 0]);
 
-		nullSpaceList[i] /= np.sum( nullSpaceList[i]); 
+			nullSpaceList[i] /= np.sum( nullSpaceList[i]); 
 
-		i += 1;
+			i += 1;
 
-	nullSpaceList = np.array(nullSpaceList);
-	nullSpaceShape = nullSpaceList.shape; 
+		nullSpaceList = np.array(nullSpaceList);
+		nullSpaceShape = nullSpaceList.shape; 
 
-	if nullSpaceShape[0] == 0:
-		raise Exception("Abort: The single-particle occupation expectations do not converge.");
+		if nullSpaceShape[0] == 0:
+			raise Exception("Abort: The single-particle occupation expectations do not converge.");
 
-	n = np.dot( kappaMatrix, nullSpaceList[0]);
+		n = np.dot( kappaMatrix, nullSpaceList[0]);
 
-	print >> sys.stderr, "Found n_0=%.9f, n_1=%.9f" % (n[0], n[1]);
+		print >> sys.stderr, "Found n_0=%.9f, n_1=%.9f" % (n[0], n[1]);
 
-	for i in range(2):
-		if n[i] >= 0 and n[i] <= 1:
-			continue;
-		else:
-			raise Exception("Occupation number n[%d]=%.3f is unphysical." % (i, n[i]));
+		for i in range(2):
+			if n[i] >= 0 and n[i] <= 1:
+				continue;
+			else:
+				raise Exception("Occupation number n[%d]=%.3f is unphysical." % (i, n[i]));
 
 
-	m0 = n[0];
-	m1 = n[1];
- 
+		m0 = n[0];
+		m1 = n[1];
+
 	mbGreensFunction = lambda epsilon: (1-m0)*(1-m1) * singleParticleGreensFunctionKet00(epsilon) + m0 * (1-m1) *singleParticleGreensFunctionKet01(epsilon) + m1 * (1-m0) *singleParticleGreensFunctionKet10(epsilon) + m0 * m1 *singleParticleGreensFunctionKet11(epsilon);
 
 	leftMatrix = lambda epsilon: np.dot(gammaLeft, mbGreensFunction(epsilon));
-	rightMatrix = lambda epsilon: np.dot(gammaRight, mbGreensFunction(epsilon).conj());
+	rightMatrix = lambda epsilon: np.dot(gammaRight, mbGreensFunction(epsilon).conj().transpose());
 
 	T = lambda epsilon: np.dot( leftMatrix(epsilon), rightMatrix(epsilon));
 
