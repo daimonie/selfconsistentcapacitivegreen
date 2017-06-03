@@ -64,6 +64,7 @@ plt.subplot(3,1,3);
 plt.plot(bias, n0, 'g-', label='n_0'); 
 plt.plot(bias, n1, 'b-', label='n_1'); 
 plt.ylabel('Occupance');
+plt.ylim(0, 1);
 plt.legend();
 
 plt.xlabel("Bias [eV]");

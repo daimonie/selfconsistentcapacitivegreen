@@ -20,6 +20,9 @@ if platform == "linux2":
 else:
 	sys.path.append('K:\windows\git\PythonUtils')
 
+#plots are helpful for debug
+import matplotlib.pyplot as plt
+#next
 import numexpr as ne
 from utils import *
 # Argument parsing
@@ -48,25 +51,24 @@ print >> sys.stderr, "Distribution for Perrin Molecule.\nSetting parameters, bet
 # Units of the current.
 physicalCurrentUnit   = 2.0 * pc["elementary charge"][0]**2.0 / pc["Planck constant"][0];
 # Lead-Molecule coupling (symmetric)
-gamma = 0.0102;
+debugFlag = 0;
+
+gamma = 0.02;
 # Stark effect strength
-alpha = 0.74;
+alpha = 0.50;
 # Interlevel tunnelling
-tau = 0.0241;
+tau = 0.024;
 # Interaction strength
-capacitive = 0.300;
+capacitive = 0.35;
 # Zero-bias level.  
-levels = 0;
+levels = -capacitive;
 # Integration interval for the self-consistent calculation.
 intervalW = np.linspace( -10.0, 10.0, 1e4); 
 
-#Needed for Riemannian sums
-differentialEpsilon = 0.01;
-
 # Bias array
-biasMinimum = -1;
-biasMaximum = 1;
-biasNumber = 100;
+biasMinimum = -.250;
+biasMaximum = .250;
+biasNumber = 200;
 
 biasArray = np.linspace(biasMinimum, biasMaximum, biasNumber);
 
@@ -101,11 +103,9 @@ for bias in biasArray:
 	interactionKet11 = interactionKet01 + interactionKet10;
 
 	gammaLeft = np.zeros((2,2));
-	gammaLeft[0][0] = gamma;
-	gammaLeft[1][1] = gamma;
+	gammaLeft[0][0] = gamma; 
 
-	gammaRight = np.zeros((2,2));
-	gammaRight[0][0] = gamma;
+	gammaRight = np.zeros((2,2)); 
 	gammaRight[1][1] = gamma; 
 
 	selfEnergy = 0.5j*(gammaLeft + gammaRight);
@@ -126,7 +126,7 @@ for bias in biasArray:
 
 	boltzmann = lambda epsilon: np.exp(-beta*epsilon);
 	fd = lambda epsilon: 1.0 / (1.0+np.exp(-beta*epsilon)); 
-	occupancy = lambda epsilon: 0.5 * (fd(epsilon - bias/2.)+ fd(epsilon + bias/2.));
+	occupancy = lambda epsilon: 0.5 * (fd(epsilon - bias/2.) + fd(epsilon + bias/2.));
 
 
 	#built in as a control switch
@@ -135,7 +135,7 @@ for bias in biasArray:
 
 
 
-	if 1==0:
+	if 1==1:
 		# Cached Integrals. Adding 0j makes sure that the datatype is complex. Otherwise, it casts to real later.
 		integralLesserKet00 = np.zeros((2,2)) +0j;
 		integralLesserKet01 = np.zeros((2,2)) +0j;
@@ -202,8 +202,9 @@ for bias in biasArray:
 		#Remember, the vectors P are chances; the normalisation we seek is sum P = 1
 		for nullVector in nullSpace:
 			nullSpaceList.append(matrix2numpy(nullVector)[:, 0]);
-
-			nullSpaceList[i] /= np.sum( nullSpaceList[i]); 
+ 			
+ 			if np.sum( nullSpaceList[i]) > 1.0:
+				nullSpaceList[i] /= np.sum( nullSpaceList[i]);  
 
 			i += 1;
 
@@ -216,13 +217,7 @@ for bias in biasArray:
 		n = np.dot( kappaMatrix, nullSpaceList[0]);
 
 		print >> sys.stderr, "Found n_0=%.9f, n_1=%.9f" % (n[0], n[1]);
-
-		for i in range(2):
-			if n[i] >= 0 and n[i] <= 1:
-				continue;
-			else:
-				raise Exception("Occupation number n[%d]=%.3f is unphysical." % (i, n[i]));
-
+ 
 
 		m0 = n[0];
 		m1 = n[1];
@@ -234,17 +229,20 @@ for bias in biasArray:
 
 	T = lambda epsilon: np.dot( leftMatrix(epsilon), rightMatrix(epsilon));
 
-	epsilonArray = np.arange(-bias/2, bias/2, differentialEpsilon);
-	if bias < 0:
-		epsilonArray = np.arange(bias/2, -bias/2, differentialEpsilon);	
+	epsilonArray = np.linspace(-bias/2, bias/2, 1e2);
 
-	transport = np.array([np.real(np.trace(T(eps))) for eps in epsilonArray]);
- 
+	transport = np.array([np.real(complex(np.trace(T(eps)))) for eps in epsilonArray]);
+ 	 
+ 	if 1==debugFlag:
+	 	plt.plot(epsilonArray, transport, 'g-');
+	 	plt.plot(epsilonArray, -fd(epsilonArray - bias/2.) + fd(epsilonArray + bias/2.), 'b--')
+	 	plt.title('Bias = %.3f' % bias);
+	 	plt.xlim(-1.0, 1.0);
+		plt.show();
+
 	current = np.trapz(transport, epsilonArray);
-	current = -np.real(complex(current)); #current is -2e/hbar Int(T(e))
+	current = np.real(complex(current)); #current is -2e/hbar Int(T(e))
 
-	if bias < 0:
-		current *= -1.0;
 
 	
 	print '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaFraction, m0, m1);

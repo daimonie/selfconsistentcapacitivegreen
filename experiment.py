@@ -56,7 +56,11 @@ def calculate_error( param_bias, param_current, param_exp ):
         raise Exception("Calculate Error: Arguments should have the same shape.")
 def readExperiment():
     #read experimental data 
-    separation_array = range(650, 670)        
+
+    startSep = 650;
+    endSep = 20 + startSep;
+
+    separation_array = range(startSep, endSep)        
     data_bias = np.zeros(( len(separation_array), 404))
     data_current = np.zeros(( len(separation_array), 404))
 
