@@ -38,24 +38,24 @@ parser  = argparse.ArgumentParser(prog="Coulomb Island Current",
 parser.add_argument(
     '-b',
     '--beta',
-    help='Beta in units [U]',
+    help='T in units [U]',
     action='store',
     type = float,
     default = 1e-3
 )    
 args    = parser.parse_args() ;
 # Temperature (units U); number, min, max 
-betaFraction = args.beta;
+betaInverse = args.beta;
 #Feedback
-print >> sys.stderr, "Distribution for Perrin Molecule.\nSetting parameters, beta = %.3e,\n" % betaFraction;  
+print >> sys.stderr, "Distribution for Perrin Molecule.\nSetting parameters, beta = %.3e,\n" % betaInverse;  
 # Units of the current.
 physicalCurrentUnit   = 2.0 * pc["elementary charge"][0]**2.0 / pc["Planck constant"][0];
 # Lead-Molecule coupling (symmetric)
 debugFlag = 0;
 
-gamma = 0.02;
+gamma = 0.005;
 # Stark effect strength
-alpha = 0.50;
+alpha = 0.55;
 # Interlevel tunnelling
 tau = 0.024;
 # Interaction strength
@@ -117,10 +117,10 @@ for bias in biasArray:
 	singleParticleGreensFunctionKet11 = lambda epsilon: np.linalg.inv( np.linalg.inv(singleParticleGreensFunctionKet00(epsilon)) - interactionKet11);
 
 	# inverse temperature 
-	beta = betaFraction*capacitive;
+	#beta = betaInverse*capacitive;
 	 
 	if doInv:
-		beta = (beta)**(-1.); 
+		beta = (betaInverse)**(-1.); 
 
 	# Fermi-Dirac distribution
 
@@ -245,13 +245,13 @@ for bias in biasArray:
 
 
 	
-	print '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaFraction, m0, m1);
-	print >> sys.stderr, '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaFraction, m0, m1);
+	print '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaInverse, m0, m1);
+	print >> sys.stderr, '%.9e\t%.9e\t%.9e\t%.9e\t%.9e' % (bias, current, betaInverse, m0, m1);
 
 	#print >> sys.stderr, '%.3e \t\t %.3e' % (bias, current);
 
-	#print '%.9e\t%.9e\t%.9e' % (betaFraction[i], beta[i], np.sum(transport)/(8*capacitive));
- 	#print "%.9e\t%.9e\t%.9e\t%.9e\t%.9e\t" % (betaFraction, beta, bias, n[0], n[1]);
+	#print '%.9e\t%.9e\t%.9e' % (betaInverse[i], beta[i], np.sum(transport)/(8*capacitive));
+ 	#print "%.9e\t%.9e\t%.9e\t%.9e\t%.9e\t" % (betaInverse, beta, bias, n[0], n[1]);
 
 #toc
 global_time_end = time.time ()

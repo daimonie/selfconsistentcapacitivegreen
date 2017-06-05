@@ -48,7 +48,7 @@ experimentalCurrent = experimentalCurrent * experimentFactor;
 #plt.rc('text', usetex=True);
 plt.rc('font', family='serif');
 plt.subplot(3,1,1);
-plt.title('Factor %.3e, beta=%.3e [U]' % (experimentFactor, beta));
+plt.title('Factor %.3f, k_b T=%.3e [eV]' % (experimentFactor, beta));
 plt.plot(bias, current, 'r-', label='current'); 
 plt.plot(experimentalBias, experimentalCurrent, 'g-', label='current'); 
 plt.ylabel('Current [e/hbar/pi]');

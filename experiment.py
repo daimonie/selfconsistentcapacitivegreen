@@ -57,8 +57,8 @@ def calculate_error( param_bias, param_current, param_exp ):
 def readExperiment():
     #read experimental data 
 
-    startSep = 650;
-    endSep = 20 + startSep;
+    startSep = 655;
+    endSep = 5 + startSep;
 
     separation_array = range(startSep, endSep)        
     data_bias = np.zeros(( len(separation_array), 404))
